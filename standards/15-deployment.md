@@ -1,7 +1,7 @@
 # 15. Deployment
 
 > Mirrored from Confluence: [15. Deployment](https://westernmilling.atlassian.net/wiki/spaces/SD/pages/4918673413/15.+Deployment)
-> Space `SD` · page `4918673413` · last modified in Confluence Oct 27, 2026.
+> Space `SD` · page `4918673413` · last modified in Confluence Oct 28, 2026.
 > Confluence is the source of truth; this copy is for reading in-repo and by tooling.
 
 Where applications run, how they get there, and how to get back.
@@ -69,51 +69,27 @@ Developer branch
   │
   ├─ PR opened ──────────────► lint + test. No deploy.
   │
-  ├─ merge to main ──────────► lint + test ──► auto-deploy to STAGING
-  │
-  └─ manual trigger ─────────► deploy to PRODUCTION
+  └─ merge to main ──────────► lint + test ──► auto-deploy to STAGING
+                                                  │
+                                                  └─ staging deploy succeeds ──► production deploy (same image, same SHA tag)
 ```
 
 - **Staging deploys automatically on merge to main.** Nothing further is required to make merged
 work visible there.
-- **Production deploys are triggered deliberately**, via `workflow_dispatch`. Secrets live in
+- **Production is deployed from the image that was deployed to staging.** What was validated is what ships. Images are never rebuilt for production. **This is the standard for new projects.**
+- **Promotion needs nothing environment-specific baked into the image.** If anything is compiled in (an asset host, a CDN URL, a domain), it moves to runtime configuration first.
+- **Safety comes from feature flags and keystones,** so a promoted change can be switched off without a deploy.
+- **Existing projects stay on manual production deploys via `workflow_dispatch`, from `main` only, against the protected `production` environment ([CI/CD §14.1](14-ci-cd.md)), until they have those safeguards, and adopt promotion as they get them.** Secrets live in
 AWS Secrets Manager, not in the GitHub environment — see
 [Configuration & Secrets §8.2](08-configuration-secrets.md).
 
-> **⚠ Open for discussion — promote or rebuild?**
+> **⚠ Open: define feature flags and keystones**
 > 
-> The superseded page states promotion: *the same image, the same SHA tag, moves from staging to
-production; images are never rebuilt.* **This is flagged rather than carried forward, because
-it is not purely a preference — it depends on something about our builds that nobody has
-confirmed.**
+> They are the safety mechanism promotion relies on, and this page does not define them. **Link to where they are defined, or define them here, before any project adopts promotion.**
+
+> **⚠ Open: confirm nothing environment-specific is baked at build time**
 > 
-> **The question underneath it:** does anything environment-specific get baked at build time? If
-nothing does, promotion is strictly better. If something does, promotion cannot work until that
-moves to runtime.
-> 
-> **The case for promoting**
-> 
-> - What was validated is what ships. A rebuild means staging tested a different artifact.
-> - **Our base images are pinned to version tags, not digests** ([Containers §11.2](11-containers-local-development.md)).
-A tag can be repointed upstream, so two builds of the *same commit* can genuinely differ. With
-rebuild, that difference lands in production untested.
-> - Rollback stays trivial — the previous image is in ECR. A rebuild-based rollback means
-rebuilding an old commit, which may no longer build.
-> - Faster production deploys, and it is Factor V's immutable release.
-> 
-> **The case for rebuilding**
-> 
-> - It permits environment-specific build-time configuration — asset host, CDN URL, anything
-compiled in.
-> - Each deploy workflow is self-contained, with no registry promotion or tag discipline to get
-right.
-> 
-> **What to check before deciding.** Our Rails Dockerfile sets `ARG RAILS_ENV="production"` and
-runs `assets:precompile` at build. If precompiled assets embed anything that differs between
-staging and production — a domain, an asset host — then one image cannot serve both today, and
-promotion requires moving that to runtime first. §15.2 says staging differs from production in
-"the domain, the database and the environment variable values", which is exactly where that
-would bite.
+> Our Rails Dockerfile sets `ARG RAILS_ENV="production"` and runs `assets:precompile` at build. **Confirm that output does not differ between staging and production before a project adopts promotion.** §15.2 says staging differs from production in "the domain, the database and the environment variable values", which is exactly where that would bite.
 
 **This flow has no review-environment branches — that design is unbuilt (§15.4).** Today a
 PR runs lint and test, and nothing else.
@@ -163,18 +139,38 @@ on it, so **nothing updates until migrations have succeeded.**
 | **Health check grace period** | Irrelevant | Must exceed migration time, or the deploy kills itself |
 | **Workers** | Wait for it by declared dependency | Start whenever, hopefully after |
 
-**Destructive migrations deploy in two phases**, under either pattern. First deploy removes the
-code that references the column or table. Second deploy — once you are confident there is no
-rollback — drops it. One phase means a rollback lands on a schema that no longer has what the old
-code needs.
+### Schema changes: expand, migrate, contract
+
+**A schema change that the running code depends on is never made in one step.** It is made in three, each its own deploy. This is the *parallel change* pattern (Fowler's [Parallel Change](https://www.martinfowler.com/bliki/ParallelChange.html) names the three phases; for databases, see [Liquibase](https://www.liquibase.com/technical-glossary/expand-contract-pattern) and [Prisma](https://www.prisma.io/dataguide/types/relational/expand-and-contract-pattern)).
+
+| Phase | What ships | Reversible? |
+| --- | --- | --- |
+| **Expand** | Add the new column, table or index alongside the old. Nothing is removed or renamed. Old code is unaffected | Yes |
+| **Migrate** | Write to both, backfill the new from the old, then move reads to the new. The old structure still exists and is still correct | Yes: roll the code back and the old structure is intact |
+| **Contract** | Drop the old column or table, once nothing reads or writes it | **No.** This is the irreversible step |
+
+**Why.** During any deploy, old and new code run against the same database. A single-step rename or drop breaks whichever side is not yet updated, and a rollback lands on a schema that no longer has what the old code needs.
+
+**Worked example: replacing `price` with `price_cents`.**
+
+1. *Expand:* add `price_cents`. Code is unchanged.
+2. *Migrate:* write both columns; backfill `price_cents` from `price`; switch reads to `price_cents`; stop writing `price`.
+3. *Contract:* after it has served traffic, drop `price`. In Rails, have the model ignore the column in an earlier deploy first.
+
+**Rules**
+
+- **Renames, type changes, and column or table removal are never a single migration.**
+- **The contract step is its own pull request and its own deploy,** after the new structure has run in production long enough that you would not want to go back.
+- **A backfill that rewrites data keeps the original until contract.** Never overwrite the only copy.
+- **Rails projects use `strong_migrations`** so unsafe operations fail in development and CI rather than review.
 
 ## 15.7 Rollback
 
 | Situation | Response |
 | --- | --- |
-| **Bad release** | Re-deploy the previous image SHA via `workflow_dispatch`. Tags are immutable git SHAs, so the last known-good image is always in ECR. *Depends on the promote-vs-rebuild decision in §15.3 — a rebuild-based rollback rebuilds an old commit instead* |
+| **Bad release** | Re-deploy the previous image SHA via `workflow_dispatch`. Tags are immutable git SHAs, so the last known-good image is always in ECR. *Promotion makes this a re-deploy of an existing image, not a rebuild. ECR lifecycle policies must keep at least the last N production SHAs, and repository tags are immutable.* |
 | **Bad configuration, not code** | ECS retains previous task definition revisions. Update and force a new deployment |
-| **Bad migration** | **Write a new reverse migration and deploy it forward.** Never `rails db:rollback` in production |
+| **Bad migration** | **Before the contract step, roll the code back: the old structure is intact.** After contract, write a new migration and deploy it forward. Never `rails db:rollback` in production |
 
 *Immutable image tags are what make the first row possible, and they are Factor V's unique release
 identifier doing its job.*
@@ -196,7 +192,7 @@ identifier doing its job.*
 | **FARGATE\_SPOT** | 100% spot for staging; 50/50 spot and on-demand for production |
 | **Right-sized tasks** | Start at the minimum (256 CPU / 512 MiB) and scale up on evidence |
 | **Single NAT gateway** | Acceptable for non-production. One per AZ in production |
-| **ECR lifecycle policies** | Expire old images. |
+| **ECR lifecycle policies** | Expire old images, but always retain the last N production-deployed SHAs; `image_tag_mutability = IMMUTABLE`. |
 | **Log retention** | Per §15.8 |
 | **`cache.t3.micro` Redis** | Smallest ElastiCache node for non-production |
 

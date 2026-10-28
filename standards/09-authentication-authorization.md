@@ -1,7 +1,7 @@
 # 9. Authentication & Authorization
 
 > Mirrored from Confluence: [9. Authentication & Authorization](https://westernmilling.atlassian.net/wiki/spaces/SD/pages/4919787522/9.+Authentication+Authorization)
-> Space `SD` · page `4919787522` · last modified in Confluence Oct 27, 2026.
+> Space `SD` · page `4919787522` · last modified in Confluence Oct 28, 2026.
 > Confluence is the source of truth; this copy is for reading in-repo and by tooling.
 
 ## Baseline
@@ -45,9 +45,11 @@ remembered to annotate.
 on a list is a query concern, not a per-row check after loading everything.
 - **Authorization failures are caught at the request-handler layer** and return an appropriate HTTP
 response, not a stack trace.
+- **Authorization is opt-out, like authentication.** The base request handler verifies that every action authorized: `after_action :verify_authorized`, and `after_action :verify_policy_scoped` on index actions. An action that never called the policy raises, in tests and in production.
+- **Fetching a record by id goes through the policy scope** (`policy_scope(Invoice).find(id)`), then `authorize`. A bare `Invoice.find(params[:id])` followed by an update is the failure this rule exists to prevent.
+- **Skipping is explicit and visible:** `skip_authorization` with a comment saying why, which is the only way to opt an action out.
 
-*Authorization is a layer in [Architecture §1.1](01-architecture.md), and policies are one of the
-optional objects there.*
+*Authorization is a layer in [Architecture §1.1](01-architecture.md), and **policies are required wherever authorization applies**; they are optional in Architecture §1.1 only for code with no authorization concern.*
 
 ### The direction
 

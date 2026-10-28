@@ -1,7 +1,7 @@
 # 5. Version Control
 
 > Mirrored from Confluence: [5. Version Control](https://westernmilling.atlassian.net/wiki/spaces/SD/pages/4919984129/5.+Version+Control)
-> Space `SD` · page `4919984129` · last modified in Confluence Oct 27, 2026.
+> Space `SD` · page `4919984129` · last modified in Confluence Oct 28, 2026.
 > Confluence is the source of truth; this copy is for reading in-repo and by tooling.
 
 Commits, branches, pull requests, merges.
@@ -161,16 +161,15 @@ check, which is what would take the page out of review entirely.
 ### Today
 
 **CI already blocks merges** — default branches carry rulesets with lint, test and security scans
-as required status checks ([CI/CD §14.10](14-ci-cd.md)). What is missing is only the
-**commit-format check itself**: no repository runs `commitlint`.
+as required status checks ([CI/CD §14.10](14-ci-cd.md)).
 
-So format is checked by whoever is reviewing, alongside everything else they are carrying. A
-malformed commit message is a review comment like any other, and the author amends.
+**Commit-format and branch-format checks are required in CI for every repository.** New projects ship with them from the first commit. **Existing projects adopt them as able**; until a project has, format is checked in review like any other comment, and the author amends.
 
-**Adding it is small**, because the enforcement mechanism is already there and already blocking:
-add the hook, add its context to the ruleset's required checks.
+- **The check is `commitlint`** against the format in §5.2, plus a branch-name check against §5.4, added to the ruleset's required status checks.
+- **Dependabot and other bots are exempt by author,** since their branch names and capitalised titles can't follow §5.2 and §5.4.
+- **Squash merge:** the check applies to the **PR title**, which is the commit that lands on `main` (§5.6). The squash message is what carries the format and the `Task:` and `BREAKING CHANGE` footers.
 
-### Once the commit-format check exists
+### What the check enforces
 
 | Checked by CI | Checked by a human |
 | --- | --- |

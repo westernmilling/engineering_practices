@@ -1,7 +1,7 @@
 # 11. Containers & Local Development
 
 > Mirrored from Confluence: [11. Containers & Local Development](https://westernmilling.atlassian.net/wiki/spaces/SD/pages/4918968324/11.+Containers+Local+Development)
-> Space `SD` · page `4918968324` · last modified in Confluence Oct 27, 2026.
+> Space `SD` · page `4918968324` · last modified in Confluence Oct 28, 2026.
 > Confluence is the source of truth; this copy is for reading in-repo and by tooling.
 
 Every project is containerized. The Dockerfile serves two purposes — production deployment and
@@ -104,8 +104,9 @@ Every project with a Dockerfile has one. Mandatory exclusions:
 .dockerignore
 .byebug_history
 .env*
-!.env.project
-!.env.vault
+config/*.key
+config/credentials*
+*.pem
 log/*
 tmp/*
 infrastructure/*
@@ -116,6 +117,8 @@ node_modules/
 .bundle/
 vendor/bundle/
 ```
+
+Env files are excluded from the image, with no exceptions. Configuration and secrets reach the container at runtime ([Configuration & Secrets §8](08-configuration-secrets.md)).
 
 **`infrastructure/` is the one that matters most** — it keeps Terraform state, secrets and
 configuration out of the build context and therefore out of the image.

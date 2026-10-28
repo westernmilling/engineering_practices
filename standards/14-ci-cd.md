@@ -1,7 +1,7 @@
 # 14. CI/CD
 
 > Mirrored from Confluence: [14. CI/CD](https://westernmilling.atlassian.net/wiki/spaces/SD/pages/4919623683/14.+CI+CD)
-> Space `SD` · page `4919623683` · last modified in Confluence Oct 27, 2026.
+> Space `SD` · page `4919623683` · last modified in Confluence Oct 28, 2026.
 > Confluence is the source of truth; this copy is for reading in-repo and by tooling.
 
 All projects use GitHub Actions. Workflows are modular and reusable.
@@ -34,7 +34,10 @@ self-hosted runners carry risks we avoid by not using them.
 
 - **Reusable workflows are never triggered directly by events** — only `workflow_call`.
 - **`deploy` declares `needs: [lint, test]`** and runs only if both pass.
-- **Merges to main auto-deploy to staging.** Production is manual `workflow_dispatch`.
+- **Merges to main auto-deploy to staging.**
+- **Production receives the image that passed staging; it is promoted, not rebuilt.** A successful staging deploy is what makes the production deploy available ([Deployment §15.3](15-deployment.md)). **This is the standard for new projects.**
+- **Existing projects deploy to production by manual `workflow_dispatch`** until they have feature flags and keystones in place, and adopt promotion as they get them.
+- **Every production deploy, promoted or manual, runs against a protected `production` environment:** required reviewers, deployment limited to `main`, and the OIDC trust for the production role pinned to that environment ([Configuration §8.2](08-configuration-secrets.md)).
 - **Migrations are their own job**, between build and deploy, with the service deployments
 depending on it — see [Deployment §15.6](15-deployment.md).
 
@@ -236,8 +239,11 @@ Pass them as arguments to an action, or assign them to an intermediate environme
 | --- | --- |
 | **Required approvals** | **1** |
 | Dismiss stale approvals on push | yes |
+| **Approval of the most recent reviewable push** | **yes** |
 | Require a pull request | yes |
 | Required status checks | lint · test · security scans |
+| Restrict who can merge | maintainers of the repository, no bots |
+| Auto-merge | **disabled** |
 | Block deletion | yes |
 | Block non-fast-forward | yes |
 | **Bypass actors** | **none** |
@@ -252,14 +258,15 @@ per repo.
 > **This is what makes attributable sign-off real.** A named human must approve a change before
 it merges, and the ruleset is the only thing that enforces it.
 
+**Agent-authored work is approved by someone who did not drive the agent.** An agent pushing under an engineer's identity is indistinguishable from that engineer to the ruleset, so the rule is procedural: the approver is a different human, and the author never approves their own agent's output. Dependency-bot PRs still need a named human to merge.
+
 **The required checks differ by project** because the workflows differ — `quality / lint`,
-`quality / rspec`, `quality / scan_ruby`, `quality / scan_js` on the Rails apps. The *rule* does
+`quality / test`, `quality / scan_ruby`, `quality / scan_js` on the Rails apps. The *rule* does
 not differ. Add every check the project runs.
 
 > **This is what makes the mechanical tier real.** Commit format, branch format and lint belong
 to CI so they stop consuming review attention. The mechanism exists and blocks merges
-today; adding commit and branch format is adding to a list already enforced — see
-[Version Control §5.7](05-version-control.md).
+today. Commit and branch format are required additions for every repository; existing projects adopt them as able ([Version Control §5.7](05-version-control.md)).
 
 **Security scanning is part of the required set** — see §14.4.
 
