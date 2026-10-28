@@ -1,10 +1,10 @@
 # Engineering Standards
 
 > Mirrored from Confluence: [Engineering Standards](https://westernmilling.atlassian.net/wiki/spaces/SD/pages/4918935555/Engineering+Standards)
-> Space `SD` · page `4918935555` · last modified in Confluence Oct 27, 2026.
+> Space `SD` · page `4918935555` · last modified in Confluence Oct 28, 2026.
 > Confluence is the source of truth; this copy is for reading in-repo and by tooling.
 
-**Status:** Approved · **Version:** 1.0 · **Revised:** 2026-10-20 · **Owner:** Joe Bridgwater-Rowe
+**Status:** Approved · **Version:** 1.0 · **Revised:** 2026-10-28 · **Owner:** Joe Bridgwater-Rowe
 **Supersedes:** Engineering Practices (Jan 2026) · Comprehensive Engineering Standards ·
 Engineering Standards 2026 · Technical Practices · Git Commit Message Standard
 
@@ -99,7 +99,7 @@ safety. A vendor library's shape is no argument about any of these:
 - A human reads every line of their own code.
 - An attributable sign-off before merge, and a human performing the merge.
 - No secret in an image, a repository, or a build argument.
-- Migrations, and anything else with an irreversible blast radius, stays a human action.
+- Anything irreversible is designed so that it does not have to be reversed: schema changes use expand, migrate, contract ([Deployment §15.6](15-deployment.md)), and the step that destroys data is its own deploy.
 
 **Changing a binding standard** is a consequential act, because standards adherence is the one
 thing enforced centrally.
@@ -128,7 +128,7 @@ problem was never bad content; it was that nothing retired.
 | Commit format settled on Conventional Commits | Two pages disagreed on subject-line format. Git Commit Message Standard is superseded on format; its principles were already migrated |
 | `Spec:` and `AC:` commit footers removed | The spec they referenced no longer exists |
 | Estimation and complexity escalation cut from Version Control | Planning material misfiled in an engineering standard |
-| Commit and branch compliance moved from review-time to CI | The most mechanisable rules in the corpus were consuming the attention that line-by-line review needs. "Maintainer" — a role appearing nowhere else — went with them |
+| Commit and branch compliance becomes a CI check, required for new projects and adopted by existing ones as able | The most mechanisable rules in the corpus were consuming the attention that line-by-line review needs. "Maintainer" — a role appearing nowhere else — went with them |
 | Squash-merge stated in Version Control | It was policy only on the oldest page and in a draft artifact, absent from the page that owns merge mechanics |
 | Testing gained the invariants convention | Domain invariants need a defined, greppable home. See Testing §3 |
 | Review environments extracted | They described nothing that exists, so they were never a standard. The standards run §1–§15 |
