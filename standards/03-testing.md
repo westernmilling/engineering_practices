@@ -81,7 +81,7 @@ One-liner declarative assertions need no comments: `it { is_expected.to validate
 `before`, `beforeEach`, `beforeAll`, `after`, `afterEach`, `afterAll`, `setUp`, `tearDown`,
 `around` — **none of them, for domain setup.** All setup is inline, in the Arrange phase.
 
-**Two acceptable uses, and no others:**
+**Three acceptable uses, and no others:**
 
 - Database cleaning strategy configuration, in a support file.
 - `jest.restoreAllMocks()` in `afterEach` for Jest suites (§3.7). Vitest suites set
@@ -204,7 +204,7 @@ re-querying; it is the same exception.
 | **Inject, never patch** | Doubles arrive as constructor arguments or parameters. `allow_any_instance_of` is prohibited, except for a vendor library with no injection seam (the exception above), with a comment naming the library and why |
 | **Stub HTTP inline** | In Arrange, never in shared setup |
 | **Never mock the database** | Real operations through factories and the ORM. Never stub `.find`, `.where`, `.create` |
-| **Restore mocks — TypeScript** | Jest: `jest.restoreAllMocks()` in `afterEach`, one of the two permitted hooks. Vitest: `restoreMocks: true` in `vitest.config`, with no hook |
+| **Restore mocks — TypeScript** | Jest: `jest.restoreAllMocks()` in `afterEach`, one of the permitted hooks (§3.3). Vitest: `restoreMocks: true` in `vitest.config`, with no hook |
 
 > **Never stub `ENV`.** `allow(ENV).to receive(:fetch)` is patching global state, which the row
 above prohibits — and it only works if the code happens to call the method you stubbed, so
