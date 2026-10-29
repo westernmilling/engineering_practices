@@ -125,6 +125,7 @@ own page and is not final until they close.
 | §8 Configuration & Secrets | Where non-secret application config lives: Parameter Store or Secrets Manager |
 | §12 Dependencies | Prisma: the concerns behind not locking it in are not written down |
 | §13 Infrastructure | Flat vs module Terraform layout is unreconciled |
+| §14 CI/CD | Action pinning: keep version tags, or switch to commit SHAs (§14.7) |
 | §15 Deployment | Define feature flags and keystones; confirm nothing environment-specific is baked at build time. Both gate promotion |
 
 ---
