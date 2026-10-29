@@ -350,7 +350,7 @@ properties. A linter tuned for application code will fight both.
 ## 3.14 No request specs for UI features — Rails
 
 **Every piece of functionality is tested exactly once, at the appropriate layer.** For UI
-features, request specs sit between controller specs and system specs without adding unique
+features, request specs sit between controller specs and feature specs without adding unique
 value — duplicate coverage, extra reviewer load, no additional bugs caught.
 
 **Exception: API endpoints.** For `Api::`-namespaced controllers and JSON endpoints, request specs
@@ -386,7 +386,7 @@ Test directories mirror source directories:
 spec/                       # or tests/
 ├── factories/
 ├── invariants/             # §3.18
-├── system/                 # UI features (§3.14); or features/, integration/
+├── features/               # UI features (§3.14); or integration/
 ├── models/
 ├── services/
 ├── controllers/            # or routes/
