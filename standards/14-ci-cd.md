@@ -167,7 +167,7 @@ Where a repository holds both application and infrastructure code, filter paths 
 does not run on Terraform-only changes.
 
 ```yaml
-- uses: dorny/paths-filter@v3
+- uses: dorny/paths-filter@<full-length-commit-SHA> # vX.Y.Z, the release you adopted
   id: path
   with:
     filters: |
@@ -177,6 +177,10 @@ does not run on Terraform-only changes.
 ```
 
 Downstream jobs gate on the filter output.
+
+**`dorny/paths-filter` is pinned to a full-length commit SHA, not a tag** — it is a third-party
+action, the case §14.7 pins. Look the SHA up for the release you adopt and keep the version in the
+trailing comment; do not copy a SHA from this page.
 
 ## 14.7 Action pinning
 
@@ -203,7 +207,7 @@ Ruby org. The compromises that make SHA pinning compelling — `tj-actions/chang
 > **The trigger to revisit.** That second reason holds only while it is true. **When a workflow
 takes a dependency on a third-party action maintained by an individual or a small project, pin
 that one to a SHA** — the argument above does not cover it. `dorny/paths-filter` in §14.6 is
-already the exception.
+the exception, and the example there shows it pinned.
 
 *Considered and not adopted: SHA-pinning everything with Dependabot maintaining a trailing version
 comment. Recorded so it is not reopened without new information — a third-party action entering a
