@@ -386,10 +386,11 @@ Test directories mirror source directories:
 spec/                       # or tests/
 ├── factories/
 ├── invariants/             # §3.18
-├── features/               # or integration/
+├── system/                 # UI features (§3.14); or features/, integration/
 ├── models/
 ├── services/
 ├── controllers/            # or routes/
+├── requests/               # API endpoints only (§3.14)
 ├── workers/                # or jobs/
 ├── form_objects/
 ├── presenters/
