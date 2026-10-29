@@ -167,7 +167,7 @@ Where a repository holds both application and infrastructure code, filter paths 
 does not run on Terraform-only changes.
 
 ```yaml
-- uses: dorny/paths-filter@<full-length-commit-SHA> # vX.Y.Z, the release you adopted
+- uses: dorny/paths-filter@v3
   id: path
   with:
     filters: |
@@ -177,10 +177,6 @@ does not run on Terraform-only changes.
 ```
 
 Downstream jobs gate on the filter output.
-
-**`dorny/paths-filter` is pinned to a full-length commit SHA, not a tag** — it is a third-party
-action, the case §14.7 pins. Look the SHA up for the release you adopt and keep the version in the
-trailing comment; do not copy a SHA from this page.
 
 ## 14.7 Action pinning
 
@@ -204,14 +200,17 @@ loss.
 Ruby org. The compromises that make SHA pinning compelling — `tj-actions/changed-files` in March
 2025 being the clearest — have been individual-maintainer actions, and we use almost none.
 
-> **The trigger to revisit.** That second reason holds only while it is true. **When a workflow
-takes a dependency on a third-party action maintained by an individual or a small project, pin
-that one to a SHA** — the argument above does not cover it. `dorny/paths-filter` in §14.6 is
-the exception, and the example there shows it pinned.
+> **The risk we accept.** A tag can be repointed, so any action pinned by version can change under
+us without a commit in our repository. That matters most for an action maintained by an
+individual or a small project, and `dorny/paths-filter` in §14.6 is the one we use today.
 
-*Considered and not adopted: SHA-pinning everything with Dependabot maintaining a trailing version
-comment. Recorded so it is not reopened without new information — a third-party action entering a
-workflow would be new information.*
+> **⚠ Open: should we switch to SHA pinning?**
+>
+> A full-length commit SHA cannot be repointed, so it closes the risk above. The cost is that
+patches stop arriving on their own: each bump needs a PR, usually from Dependabot, and someone to
+merge it. Options: keep version tags everywhere (today); SHA-pin third-party actions only; or
+SHA-pin everything with a trailing version comment. **Decide, and record the reasoning here,
+before the next third-party action enters a workflow.**
 
 Minimum versions: `actions/checkout@v4` · `ruby/setup-ruby@v1` · `actions/setup-node@v4` ·
 `aws-actions/configure-aws-credentials@v4` · `aws-actions/amazon-ecr-login@v2` ·
