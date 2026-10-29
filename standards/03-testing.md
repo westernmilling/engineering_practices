@@ -33,7 +33,7 @@ and we contradict it on three of its recommendations:
 | --- | --- |
 | Use `let` for lazy-loaded setup | **`let` is prohibited** (§3.4) |
 | One expectation per unit test | Multiple assertions are allowed (§3.13) |
-| Use shared examples to remove duplication | Explicit helpers with visible `include` (§3.4) |
+| Use shared examples to remove duplication | Factories and helpers called by name; `include` only for testing vocabulary such as matchers (§3.4) |
 
 Citing it as a baseline would mean citing a document that disagrees with us on the rules we most
 care about. Listed here so its absence reads as a decision.
@@ -200,7 +200,7 @@ re-querying; it is the same exception.
 | **Name every double** | `double(:context, …)`. An anonymous double is acceptable only as a throwaway return value whose interface is never exercised |
 | **Prefer type-safe doubles** | `instance_double(ClassName)` when the real class exists. TypeScript: `Partial<T>` cast at the call site |
 | **`spy` when you only verify the call** | Loggers, publishers. `double` when you need to control a return value |
-| **Inject, never patch** | Doubles arrive as constructor arguments or parameters. `allow_any_instance_of` is prohibited — it appears in no test file across any project |
+| **Inject, never patch** | Doubles arrive as constructor arguments or parameters. `allow_any_instance_of` is prohibited, except for a vendor library with no injection seam (the exception above), with a comment naming the library and why |
 | **Stub HTTP inline** | In Arrange, never in shared setup |
 | **Never mock the database** | Real operations through factories and the ORM. Never stub `.find`, `.where`, `.create` |
 | **Restore mocks — TypeScript** | `jest.restoreAllMocks()` in `afterEach`, one of the two permitted hooks |
@@ -212,8 +212,8 @@ above prohibits — and it only works if the code happens to call the method you
 > It is also usually a symptom: **if a unit test needs to stub `ENV`, the class under test is
 reading configuration it should have been given** — the fix is
 [Configuration & Secrets §8.1](08-configuration-secrets.md), not a cleverer stub. A class
-reading `ENV` cannot be exercised with different configuration without a global mutation (§3.2)
-or a patch (this section), and both are prohibited here. **Injection is what makes these rules
+reading `ENV` cannot be exercised with different configuration without a global mutation
+or a patch, and both are prohibited here (§3.7, Environment variables in tests). **Injection is what makes these rules
 followable.**
 
 ### Environment variables in tests

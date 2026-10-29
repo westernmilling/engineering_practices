@@ -74,14 +74,14 @@ on the one code path nobody exercised, at the worst possible time. **Reading at 
 a 2am incident into a failed deploy.**
 
 **It is the only way the class is testable.** A class reading `ENV` cannot be exercised with
-different configuration without mutating global state — which [Testing §3.2](03-testing.md)
-prohibits — or patching it, which [§3.7](03-testing.md) prohibits. Injection is not a nicety here;
+different configuration without mutating global state or patching it, both of which
+[Testing §3.7](03-testing.md) prohibits. Injection is not a nicety here;
 without it the rules in Testing cannot be followed.
 
 **The constructor is the contract.** You can read what a class needs from its signature instead of
 grepping its body for `ENV`.
 
-**It is dependency inversion** ([Architecture §1.2](01-architecture.md)). The class states what it
+**It is dependency injection** ([Architecture §1.2](01-architecture.md)). The class states what it
 needs; it does not reach out for it. `ENV` is global state, and §1.2 already prohibits
 dependencies arriving that way — this names the most common instance.
 
@@ -143,12 +143,6 @@ enforced by the IAM OIDC trust policy rather than by hiding the string.
 - **Never pass a secret as a Docker `--build-arg`.** It persists in the image layers.
 - **Never commit a secret in any form**, including encrypted vault files.
 
-> **Flagged for review when review environments are built.** The proposed design gives every
-review database the *same* master username and password, stored in a GitHub `review`
-environment, for simplicity. **Two problems, not one:** a single shared credential across every
-ephemeral environment, and secrets in GitHub rather than Secrets Manager. The design predates
-the decision above, so it needs revisiting on both counts before anything is built.
-
 ## 8.3 Environment-keyed config in the repository
 
 *§8.2 strengthens this: with the application's whole configuration in AWS and injected as flat
@@ -176,11 +170,6 @@ the codebase and the litmus test fails.
 
 This is largely unavoidable in Rails — the framework is built around `RAILS_ENV` — so the point
 is not to fight it but to keep the environment-keyed layer empty of values.
-
-> **One place to watch.** Review environments are the 0-to-N ephemeral case, which is the
-proliferation scenario this factor actually warns about. The proposed design gives all of them
-a single shared `review` bundle and one shared database credential — worth revisiting at build
-time rather than inheriting.
 
 ## 8.4 Database configuration
 
@@ -220,4 +209,4 @@ found by tests that cross tenants on purpose.
 | Terraform managing Secrets Manager | [Infrastructure §13](13-infrastructure.md) |
 | OIDC setup and workflow secrets scoping | [CI/CD §14](14-ci-cd.md) |
 | Environment tiers and what each is for | [Deployment §15](15-deployment.md) |
-| Documenting required variables in the README | [README §7.4](07-readme.md) |
+| Documenting required variables in the README | [README §7.3](07-readme.md) |

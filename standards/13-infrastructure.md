@@ -75,7 +75,9 @@ cost questions then become archaeology.
 - **Terraform:** a minimum — `>= 1.7.0`.
 - **AWS provider:** a pessimistic constraint on the major — `~> 6.0`, so patches arrive and
 breaking changes do not.
-- An exact pin is acceptable while actively developing a stack, and relaxed once stable.
+- **No exact pin on the AWS provider, even while developing.** The pessimistic constraint is
+  enough: the committed `.terraform.lock.hcl` records the exact version in use, so runs stay
+  reproducible and patches still arrive.
 
 > **Correction to the superseded page.** It instructed provider authentication via
 `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` environment variables. **Authentication is

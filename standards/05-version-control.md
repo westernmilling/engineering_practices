@@ -35,15 +35,16 @@ perfectly useless.
 - Commit messages are written for other humans, including your future self.
 - Each commit is a logical, coherent unit of work.
 - A commit explains **why** the change was made, not just what changed.
-- Multiple commits in a PR tell the story of how the change evolved, so a reviewer can read them
-incrementally rather than re-parsing the whole diff.
-- Do not rely on the PR description alone to carry intent.
+- Commits on the branch are working history. The PR page keeps them (§5.6) so a reviewer can
+read the change incrementally.
+- What lands on `main` is the squash commit, so the PR description is what carries the intent.
 
-> **A commit stands on its own.** If someone reads the history without the PR, they should still
-understand what was done and why.
+> **What lands on `main` stands on its own.** If someone reads the history without the PR, the
+title and description should still say what was done and why.
 
-**This matters more now, not less.** With no durable spec and the code AI-written, the commit
-body is one of the few durable, append-only places the *why* can live.
+**This matters more now, not less.** With no durable spec and the code AI-written, the squash
+commit's body, which is the PR description, is one of the few durable, append-only places the
+*why* can live.
 
 ## 5.2 Our deltas
 
@@ -127,7 +128,7 @@ Always branch from the project's main branch.
 
 ## 5.5 PR size and scope
 
-**One testable behaviour per PR**, in 1–3 commits.
+**One testable behaviour per PR.**
 
 |  |  |
 | --- | --- |
@@ -142,12 +143,16 @@ The numbers exist for one reason: **every line has to be read by a human**, and 
 keeps that possible. It is the one rule whose violation directly threatens the only real control
 in the system.
 
-**When work spans more than one logical change**, plan the slices before implementing: list each
-slice, define its boundary, and identify ordering dependencies.
+**When work spans more than one logical change, it lands as more than one PR**, each
+independently reviewable, with its boundary and any ordering dependency stated in the
+description.
 
 ## 5.6 Merging
 
-- **Squash-merge.** `main` gets one clean commit per PR.
+- **Squash-merge.** `main` gets one clean commit per PR, built from the **PR title** (the
+subject; CI checks it against §5.2) and the **PR description** (the body). `Task:` and
+`BREAKING CHANGE` footers go at the end of the description so they survive the squash.
+Repositories set the squash default to *Pull request title and description*.
 - **A human merges.** Always — agents never do. The blast radius is irreversible, so this stays
 a human action permanently.
 - **The PR page keeps the full trail** — commits, diffs and review conversation survive the

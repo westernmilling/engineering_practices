@@ -126,8 +126,9 @@ configuration out of the build context and therefore out of the image.
 ## 11.6 Compose — local development only
 
 Compose files here are for **local development**. Production is ECS Fargate
-([Deployment §15](15-deployment.md)). A project needing a production-oriented compose file for
-on-premise deployment puts it in `docker/production/docker-compose.yml`, separate from the
+([Deployment §15](15-deployment.md)). A project still deployed on-premise (a deprecated platform,
+[Deployment §15.1](15-deployment.md)) puts its production-oriented compose file in
+`docker/production/docker-compose.yml`, separate from the
 development one.
 
 > **Corrected against the current spec.** The superseded page called for Compose v3 syntax and an
