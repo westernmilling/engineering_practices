@@ -78,8 +78,6 @@ set -e
 
 rm -f /app/tmp/pids/server.pid
 
-bundle exec rails db:migrate
-
 exec bundle exec "$@"
 ```
 
@@ -87,13 +85,14 @@ exec bundle exec "$@"
 - Uses `exec`, so the application replaces the shell process and receives signals correctly.
 - **Asset precompilation belongs in the build, not here.** It is a build concern.
 - For Node projects the `CMD` is usually enough; use a script only when there is real runtime
-initialisation, such as Prisma migrations.
+initialisation. Migrations are not it (§15.6).
 
-> **Migrations are moving out of the entrypoint.** The direction is a discrete ECS task in the
-deploy pipeline, which runs once rather than once per container and fails as a deploy step
-rather than a crash loop — see [Deployment §15.6](15-deployment.md). Where a project has moved,
-its entrypoint does not migrate and the script above is just the PID cleanup and `exec`.
-Projects still migrating on start carry the grace-period and only-the-web-task rules in §15.6.
+> **Migrations do not run in the entrypoint.** They are a discrete ECS task in the deploy
+pipeline, which runs once rather than once per container and fails as a deploy step rather than
+a crash loop — see [Deployment §15.6](15-deployment.md). **This is the standard for new
+projects.** An existing project that still migrates on start keeps `bundle exec rails db:migrate`
+before the `exec` line and carries the grace-period and only-the-web-task rules in §15.6, until
+it moves.
 
 ## 11.5 `.dockerignore`
 
@@ -164,17 +163,18 @@ includes development tooling, and exposes service ports to the host for debuggin
 ## 11.7 The standalone database — for Path B
 
 The native development path ([README §7.3](07-readme.md)) uses a standalone database container
-rather than Compose. The standard invocation:
+rather than Compose. `{major}` is the major version production runs on RDS; these standards do
+not pin one. The standard invocation:
 
 ```bash
-docker run --name pg16 -p 5432:5432 -d --rm \
+docker run --name pg{major} -p 5432:5432 -d --rm \
   -e POSTGRES_PASSWORD=postgres \
-  -v ~/PostgresData/16:/var/lib/postgresql/data \
+  -v ~/PostgresData/{major}:/var/lib/postgresql/data \
   -v ~/Downloads:/tmp/Downloads \
-  postgres:16
+  postgres:{major}
 ```
 
-`--rm` removes the container on stop; the data persists in `~/PostgresData/{version}/`, so the
+`--rm` removes the container on stop; the data persists in `~/PostgresData/{major}/`, so the
 container is disposable and the database is not. The `~/Downloads` mount exists for importing
 and exporting dumps.
 
