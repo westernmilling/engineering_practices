@@ -52,11 +52,12 @@ proposed but not built, and is not covered by these standards.
 | Tier | Purpose | Count | Lifecycle | Database |
 | --- | --- | --- | --- | --- |
 | **Production** | Live, customer-facing | 1 per project | Permanent | Managed RDS, production data |
-| **Staging** | Exact replica of production, for validation before release | 1 per project | Permanent | Managed RDS, its own data — **never production's** |
+| **Staging** | Replica of production, for validation before release | 1 per project | Permanent | Managed RDS, its own data — **never production's** |
 
-**Staging is an exact infrastructure replica of production** — same Terraform modules, same task
-sizes, same service topology. The only differences are the domain, the database and the
-environment variable values. That is Factor X, and it is what makes staging validation mean
+**Staging is a structural replica of production** — same Terraform modules, same task
+definitions, same service topology. The differences are the domain, the database, the
+environment variable values, and the cost controls in §15.9: spot capacity, a single NAT
+gateway, and a smaller Redis node. That is Factor X, and it is what makes staging validation mean
 anything.
 
 **Staging never connects to a production database.** It has its own RDS instance with its own
@@ -91,14 +92,11 @@ AWS Secrets Manager, not in the GitHub environment — see
 > 
 > Our Rails Dockerfile sets `ARG RAILS_ENV="production"` and runs `assets:precompile` at build. **Confirm that output does not differ between staging and production before a project adopts promotion.** §15.2 says staging differs from production in "the domain, the database and the environment variable values", which is exactly where that would bite.
 
-**This flow has no review-environment branches — that design is unbuilt (§15.4).** Today a
-PR runs lint and test, and nothing else.
+Today a PR runs lint and test, and nothing else.
 
-## 15.4 Review environments — not built
+## 15.4 Review environments — not a standard
 
-**There is no review tier.** A design exists — a PR label spins an environment up, pushes rebuild
-it, closing the PR tears it down — but nothing has been built and it is not a standard, so it is
-not described here.
+**There is no review tier.** Nothing is built and nothing in these standards governs one.
 
 ## 15.5 Procfile convention
 
@@ -195,8 +193,3 @@ identifier doing its job.*
 | **ECR lifecycle policies** | Expire old images, but always retain the last N production-deployed SHAs; `image_tag_mutability = IMMUTABLE`. |
 | **Log retention** | Per §15.8 |
 | **`cache.t3.micro` Redis** | Smallest ElastiCache node for non-production |
-
-**The review-environment cost controls** — label gating, auto-teardown of merged and stale PRs,
-`db.t3.micro` review databases, a shared ALB with host-based routing, review environments sharing
-staging's Redis — are all part of the unbuilt design, and are not listed here: a cost control for
-infrastructure that does not exist is a design note, not a standard.

@@ -13,13 +13,13 @@ Talking to Agris, Syspro, Great Plains, Microsoft Graph, and anything else we do
 **None adopted.** Integration guidance in the wild is either vendor-specific or so general as to
 be useless. What follows is ours.
 
-Three named ideas do the work in §10.1, each answering a different question:
+Three ideas do the work in §10.1, each answering a different question:
 
 |  | Answers |
 | --- | --- |
 | **Anti-Corruption Layer** (domain-driven design) | *Put a boundary there* |
 | **Single responsibility** — one reason to change | *Why it must be a separate class* |
-| **Dependency inversion** | *Which way the boundary faces* |
+| **Dependency direction** ([Architecture §1.1](01-architecture.md)) | *Which way the boundary faces* |
 
 A boundary facing the wrong way is just a folder.
 
@@ -28,7 +28,8 @@ A boundary facing the wrong way is just a folder.
 ## 10.1 Clients live in their own layer
 
 **External API integrations live in a dedicated library or infrastructure layer, never in the
-service layer.**
+service layer.** Clients live in `lib/` (or a shared package in a monorepo) and do not
+reference the application ([Architecture §1.1](01-architecture.md)).
 
 - **Each external system gets its own namespace.** `AgrisServices`, `MicrosoftGraph`.
 - **A client class handles authentication, HTTP transport and response parsing** — and nothing
@@ -58,22 +59,22 @@ files that always change together. **Count reasons to change, not verbs.**
 
 ### Which side defines the shape
 
-The boundary only works if the dependency points the right way — **the service defines what it
-needs, and the client adapts the vendor to that.** Not the reverse. This is
-[dependency inversion](https://en.wikipedia.org/wiki/Dependency_inversion_principle): the
-high-level code does not depend on the low-level detail; both depend on the shape the domain
-needs.
+The boundary only works if the dependency points the right way — **the client defines the shape,
+and the application depends on it.** The client knows nothing about the application
+([Architecture §1.1](01-architecture.md)) and translates the vendor's model into types of its own.
+Services depend on the client and its types; the vendor's model never reaches them.
 
-In practice that means a client returns **our** types, not the vendor's. An Agris response parsed
-into a `Hash` with the vendor's field names and handed upward has moved the vendor's model into
-the service layer, and the boundary is decorative — the class exists but nothing is contained by it.
+In practice that means a client returns **its own** types, not the vendor's. An Agris response
+parsed into a `Hash` with the vendor's field names and handed upward has moved the vendor's model
+into the service layer, and the boundary is decorative — the class exists but nothing is contained
+by it.
 
-**The test:** if Agris renamed a field tomorrow, how many files change? One means the dependency is
-inverted. More means the client is a pass-through with a namespace.
+**The test:** if Agris renamed a field tomorrow, how many files change? One, the client, means the
+vendor's model is contained. More means the client is a pass-through with a namespace.
 
-*The mechanism is constructor injection ([Architecture §1.2](01-architecture.md)); the consequence
-in tests is that doubles are injected rather than patched ([Testing §3.7](03-testing.md)). Those
-two rules and this one are the same idea at three altitudes.*
+*The client reaches the service by constructor injection ([Architecture §1.2](01-architecture.md));
+the consequence in tests is that doubles are injected rather than patched
+([Testing §3.7](03-testing.md)).*
 
 ## 10.2 Testing an integration
 

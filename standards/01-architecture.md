@@ -114,9 +114,8 @@ One public entry point: **`.call`**. Services are instantiated with dependencies
 
 - **One public method.** Everything else is non-public.
 - **Constructor injection** — clients, loggers, configuration arrive through the constructor,
-never from global state or a singleton. This is the mechanism behind
-[dependency inversion](10-external-integrations.md): the service states what it needs rather
-than reaching for a specific implementation. *It is also what makes the object testable without
+never from global state or a singleton. This is dependency injection: the
+service is handed what it needs rather than reaching for a specific implementation. *It is also what makes the object testable without
 patching ([Testing §3.7](03-testing.md)).*
 **`ENV` is global state** — no class reads an environment variable, ever. Configuration is read
 at the boundary and injected; see [Configuration & Secrets §8.1](08-configuration-secrets.md).

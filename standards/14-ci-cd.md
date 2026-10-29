@@ -32,7 +32,9 @@ self-hosted runners carry risks we avoid by not using them.
 | `pull_request.yml` | `pull_request` | Calls lint + test |
 | `main.yml` | `push` to `main` | Calls lint + test + deploy to staging |
 
-- **Reusable workflows are never triggered directly by events** — only `workflow_call`.
+- **Reusable workflows are never triggered by repository events** (`push`, `pull_request`), only
+  by `workflow_call`. The one addition is `deploy.yml`, which also accepts `workflow_dispatch` for
+  manual production deploys.
 - **`deploy` declares `needs: [lint, test]`** and runs only if both pass.
 - **Merges to main auto-deploy to staging.**
 - **Production receives the image that passed staging; it is promoted, not rebuilt.** A successful staging deploy is what makes the production deploy available ([Deployment §15.3](15-deployment.md)). **This is the standard for new projects.**
@@ -233,7 +235,8 @@ Pass them as arguments to an action, or assign them to an intermediate environme
 
 ## 14.10 The ruleset
 
-**Every repository has the same ruleset on its default branch. One pattern, no variations.**
+**Every repository has the same ruleset on its default branch.** The rules are identical
+everywhere; only the list of required checks varies by project, below.
 
 | Rule | Setting |
 | --- | --- |

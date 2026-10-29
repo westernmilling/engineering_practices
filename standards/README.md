@@ -113,6 +113,20 @@ accepted, nor any ceremony, capacity calculation or sign-off.
 Version Control Standards page carried a Fibonacci points scheme and a complexity escalation
 loop; both are retired, not relocated.
 
+## Open items
+
+**Approved does not mean closed.** These decisions are open. The text they touch is marked on its
+own page and is not final until they close.
+
+| Page | Open decision |
+| --- | --- |
+| §6 Code Review | Automated pre-review (Copilot or similar): adopt it or not |
+| §7 README | The QA paragraph needs confirming with QA before publishing |
+| §8 Configuration & Secrets | Where non-secret application config lives: Parameter Store or Secrets Manager |
+| §12 Dependencies | Prisma: the concerns behind not locking it in are not written down |
+| §13 Infrastructure | Flat vs module Terraform layout is unreconciled |
+| §15 Deployment | Define feature flags and keystones; confirm nothing environment-specific is baked at build time. Both gate promotion |
+
 ---
 
 ## What changed in this consolidation
@@ -124,7 +138,7 @@ problem was never bad content; it was that nothing retired.
 
 | Change | Why |
 | --- | --- |
-| Nine topics got their own pages for the first time — configuration, auth, integrations, dependencies, containers, infrastructure, CI/CD, and the deployment material | They existed **only** on the legacy page, so it could never be retired. README §7 mandates a Compose path whose rules lived there; Deployment assumed Terraform modules it never restated |
+| Eight topics got their own pages for the first time — configuration, auth, integrations, dependencies, containers, infrastructure, CI/CD, and the deployment material | They existed **only** on the legacy page, so it could never be retired. README §7 mandates a Compose path whose rules lived there; Deployment assumed Terraform modules it never restated |
 | Commit format settled on Conventional Commits | Two pages disagreed on subject-line format. Git Commit Message Standard is superseded on format; its principles were already migrated |
 | `Spec:` and `AC:` commit footers removed | The spec they referenced no longer exists |
 | Estimation and complexity escalation cut from Version Control | Planning material misfiled in an engineering standard |
