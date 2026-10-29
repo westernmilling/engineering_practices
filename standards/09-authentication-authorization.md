@@ -45,9 +45,9 @@ remembered to annotate.
 on a list is a query concern, not a per-row check after loading everything.
 - **Authorization failures are caught at the request-handler layer** and return an appropriate HTTP
 response, not a stack trace.
-- **Authorization is opt-out, like authentication.** The base request handler verifies that every action authorized: `after_action :verify_authorized`, and `after_action :verify_policy_scoped` on index actions. An action that never called the policy raises, in tests and in production.
-- **Fetching a record by id goes through the policy scope** (`policy_scope(Invoice).find(id)`), then `authorize`. A bare `Invoice.find(params[:id])` followed by an update is the failure this rule exists to prevent.
-- **Skipping is explicit and visible:** `skip_authorization` with a comment saying why, which is the only way to opt an action out.
+- **Authorization is opt-out, like authentication.** The base request handler verifies that every action authorized: `after_action :verify_authorized`, and `after_action :verify_policy_scoped` on index actions (Pundit). An action that never called the policy raises, in tests and in production. **This is required for new projects; existing projects adopt it as able.** CanCan projects meet the same result with `check_authorization` in the base controller.
+- **Fetching a record by id goes through the policy scope** (`policy_scope(Invoice).find(id)`, or `Invoice.accessible_by(current_ability)` in CanCan), then `authorize`. A bare `Invoice.find(params[:id])` followed by an update is the failure this rule exists to prevent.
+- **Skipping is explicit and visible:** `skip_authorization` (CanCan: `skip_authorization_check`) with a comment saying why, which is the only way to opt an action out.
 
 *Authorization is a layer in [Architecture §1.1](01-architecture.md), and **policies are required wherever authorization applies**; they are optional in Architecture §1.1 only for code with no authorization concern.*
 
@@ -58,4 +58,4 @@ a `PolicyContext` carrying what policies need beyond the user.
 
 **Roles are rows, not constants.** Adding a role is then data, not a deploy.
 
-**Projects on CanCan converge when they are touched**, not as a migration of their own.
+**Projects on CanCan converge when they are touched**, not as a migration of their own. Until they do, §9.2 still applies to them through the CanCan equivalents above, on the same new-project, adopt-as-able footing.
