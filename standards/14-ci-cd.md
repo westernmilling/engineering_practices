@@ -90,13 +90,15 @@ The test workflow runs the full suite against **real database services** — con
 fail intermittently, which is worse than failing consistently.
 - **PostgreSQL uses `tmpfs` for its data directory** — RAM-backed, meaningfully faster, and the
 data is disposable by definition.
+- **The image matches the major version production runs on RDS** (`{major}` below), so CI tests
+against the engine that ships.
 - **No hardcoded values.** Environment comes from GitHub Actions variables.
 - Install SQL client tools only where the project integrates with MSSQL.
 
 ```yaml
 services:
   postgres:
-    image: postgres:15
+    image: postgres:{major}
     options: >-
       --mount type=tmpfs,destination=/var/lib/postgresql/data
       --health-cmd pg_isready
