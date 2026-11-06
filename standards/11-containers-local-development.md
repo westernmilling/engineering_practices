@@ -102,10 +102,10 @@ Every project with a Dockerfile has one. Mandatory exclusions:
 .git
 .dockerignore
 .byebug_history
-.env*
-config/*.key
-config/credentials*
-*.pem
+**/.env*
+**/config/*.key
+**/config/credentials*
+**/*.pem
 log/*
 tmp/*
 infrastructure/*
@@ -167,7 +167,7 @@ rather than Compose. `{major}` is the major version production runs on RDS; thes
 not pin one. The standard invocation:
 
 ```bash
-docker run --name pg{major} -p 5432:5432 -d --rm \
+docker run --name pg{major} -p 127.0.0.1:5432:5432 -d --rm \
   -e POSTGRES_PASSWORD=postgres \
   -v ~/PostgresData/{major}:/var/lib/postgresql/data \
   -v ~/Downloads:/tmp/Downloads \

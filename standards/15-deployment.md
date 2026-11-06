@@ -145,20 +145,21 @@ on it, so **nothing updates until migrations have succeeded.**
 | --- | --- | --- |
 | **Expand** | Add the new column, table or index alongside the old. Nothing is removed or renamed. Old code is unaffected | Yes |
 | **Migrate** | Write to both, backfill the new from the old, then move reads to the new. The old structure still exists and is still correct | Yes: roll the code back and the old structure is intact |
-| **Contract** | Drop the old column or table, once nothing reads or writes it | **No.** This is the irreversible step |
+| **Contract** | Stop writing the old column or table, then, in a later deploy, drop it once nothing reads it | **No.** Dropping is the irreversible step; stopping writes already leaves the old structure stale |
 
 **Why.** During any deploy, old and new code run against the same database. A single-step rename or drop breaks whichever side is not yet updated, and a rollback lands on a schema that no longer has what the old code needs.
 
 **Worked example: replacing `price` with `price_cents`.**
 
 1. *Expand:* add `price_cents`. Code is unchanged.
-2. *Migrate:* write both columns; backfill `price_cents` from `price`; switch reads to `price_cents`; stop writing `price`.
-3. *Contract:* after it has served traffic, drop `price`. In Rails, have the model ignore the column in an earlier deploy first.
+2. *Migrate:* write both columns, so they stay in sync; backfill `price_cents` from `price`; switch reads to `price_cents`.
+3. *Contract, in two deploys:* once `price_cents` has served traffic as the source of reads, stop writing `price`; then, in a later deploy, drop it. In Rails, have the model ignore the column before the drop.
 
 **Rules**
 
 - **Renames, type changes, and column or table removal are never a single migration.**
-- **The contract step is its own pull request and its own deploy,** after the new structure has run in production long enough that you would not want to go back.
+- **Stopping writes to the old structure and dropping it are separate deploys,** and the drop is its own pull request, after the new structure has run in production long enough that you would not want to go back.
+- **The old structure stays in sync for as long as a rollback is supported.** Keep writing both until the contract phase starts, so rolling the code back never reads stale data.
 - **A backfill that rewrites data keeps the original until contract.** Never overwrite the only copy.
 - **Rails projects use `strong_migrations`** so unsafe operations fail in development and CI rather than review.
 
@@ -168,7 +169,7 @@ on it, so **nothing updates until migrations have succeeded.**
 | --- | --- |
 | **Bad release** | Re-deploy the previous image SHA via `workflow_dispatch`. Tags are immutable git SHAs, so the last known-good image is always in ECR. *Promotion makes this a re-deploy of an existing image, not a rebuild. ECR lifecycle policies must keep at least the last N production SHAs, and repository tags are immutable.* |
 | **Bad configuration, not code** | ECS retains previous task definition revisions. Update and force a new deployment |
-| **Bad migration** | **Before the contract step, roll the code back: the old structure is intact.** After contract, write a new migration and deploy it forward. Never `rails db:rollback` in production |
+| **Bad migration** | **Before the contract phase starts, roll the code back: the old structure is intact and still in sync.** After it starts, write a new migration and deploy it forward. Never `rails db:rollback` in production |
 
 *Immutable image tags are what make the first row possible, and they are Factor V's unique release
 identifier doing its job.*
