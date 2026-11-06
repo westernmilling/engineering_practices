@@ -76,6 +76,10 @@ vendor's model is contained. More means the client is a pass-through with a name
 the consequence in tests is that doubles are injected rather than patched
 ([Testing §3.7](03-testing.md)).*
 
+Where a service needs its own shape rather than the client's, see
+[Architecture §1.2, Injection is not inversion](01-architecture.md): an adapter owned by the
+application, optional.
+
 ## 10.2 Testing an integration
 
 - **HTTP calls are stubbed, in the Arrange phase** ([Testing §3.7](03-testing.md)).

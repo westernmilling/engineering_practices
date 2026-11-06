@@ -155,6 +155,78 @@ export const createExportRequest = async (
 worth having because a uniform entry point means any service can be composed, injected or
 stubbed without knowing its shape.
 
+### Injection is not inversion
+
+**Injection** hands a class what it needs through the constructor. **Inversion** goes further: the
+class declares what it needs *in its own terms*, and something else is made to fit. We require
+injection everywhere. We require inversion only where it earns its place — several vendors able to
+fill the same role, or a domain model far from the client's types.
+
+*Injection only.* The client is injected, so the service is testable, but it speaks the client's
+types:
+
+```ruby
+class InvoiceSyncService
+  def initialize(id:, client:)       # injected
+    @id = id
+    @client = client
+  end
+
+  def call
+    record = @client.fetch_invoice(@id)   # AgrisServices::Invoice — the client's type
+    Invoice.create!(number: record.invoice_no, total_cents: record.amount_cents)
+  end
+end
+```
+
+*Inversion.* The service declares the shape it wants, and an adapter in the application fits the
+client to it:
+
+```ruby
+# Owned by the service: the shape it wants, in its own terms.
+InvoiceData = Struct.new(:number, :total_cents, keyword_init: true)
+
+class InvoiceSyncService
+  def initialize(id:, invoices:)     # anything responding to #invoice(id) -> InvoiceData
+    @id = id
+    @invoices = invoices
+  end
+
+  def call
+    data = @invoices.invoice(@id)    # the service calls the port, not the client
+    Invoice.create!(number: data.number, total_cents: data.total_cents)
+  end
+end
+
+# In the application: fits the client to what the service asked for.
+class AgrisInvoiceGateway
+  def initialize(client:)
+    @client = client
+  end
+
+  def invoice(id)
+    raw = @client.fetch_invoice(id)  # AgrisServices::Invoice — the client's type
+    InvoiceSyncService::InvoiceData.new(number: raw.invoice_no, total_cents: raw.amount_cents)
+  end
+end
+
+# Composition, at the boundary (an initializer or a factory):
+InvoiceSyncService.new(
+  id: id,
+  invoices: AgrisInvoiceGateway.new(client: AgrisServices::Client.new)
+)
+```
+
+**The service does not know the adapter exists.** It is handed something that responds to
+`#invoice(id)` and calls that; the composition point decides what responds. The client's types and
+field names appear only in the adapter. A service test passes
+`invoices: double(invoice: InvoiceData.new(…))` and touches no client. Replacing the vendor means
+writing another adapter, and the service is untouched.
+
+In Ruby the interface is a documented duck type; in TypeScript it is an `interface`. An adapter that
+only forwards calls without translating anything is a pass-through with a namespace — do not add
+one ([External Integrations §10.1](10-external-integrations.md)).
+
 ## 1.3 Thin request handlers
 
 A handler does four things: authentication checks, parameter extraction, service delegation,
