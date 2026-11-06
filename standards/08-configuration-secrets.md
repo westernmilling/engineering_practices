@@ -30,8 +30,8 @@ credential?** If not, something is in the wrong place.
 ## 8.1 Environment variables
 
 - **All secrets and connection strings come from environment variables.** No exceptions.
-- **Required values use a fetch that raises on a missing key** — `ENV.fetch('KEY')`,
-`process.env.KEY ?? throw`. A missing required variable fails at boot, loudly, not at 2am on
+- **Required values use a fetch that raises on a missing key** — `ENV.fetch('KEY')` in Ruby; in
+TypeScript, a small helper that throws when the key is absent. A missing required variable fails at boot, loudly, not at 2am on
 the one code path that reads it.
 - **Optional values have sensible defaults.**
 - **Never commit a `.env` file** — that includes `.env.test`, which is local only. Provide

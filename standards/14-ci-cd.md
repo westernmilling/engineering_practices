@@ -174,13 +174,16 @@ does not run on Terraform-only changes.
 - uses: dorny/paths-filter@v3
   id: path
   with:
+    predicate-quantifier: 'every'
     filters: |
       non_terraform:
         - '**'
         - '!infrastructure/terraform/**'
 ```
 
-Downstream jobs gate on the filter output.
+Downstream jobs gate on the filter output. **`predicate-quantifier: 'every'` is required**: the
+default, `some`, matches a file if any pattern does, and `**` matches everything, so a
+Terraform-only change would still count as application code.
 
 ## 14.7 Action pinning
 

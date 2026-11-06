@@ -38,16 +38,16 @@ remembered to annotate.
 **Policy-based, denying by default.**
 
 - **A base policy denies every action.** A policy that forgets a rule fails closed.
-- **A predicate method per action** — `can_create?`, `can_update?`.
-- **Related actions delegate**: `can_new?` delegates to `can_create?`, `can_edit?` to
-`can_update?`. The form and the thing it submits to cannot disagree about who may use them.
+- **A predicate method per action**, named as Pundit expects — `create?`, `update?`.
+- **Related actions delegate**: `new?` delegates to `create?`, `edit?` to
+`update?`. The form and the thing it submits to cannot disagree about who may use them.
 - **Collection filtering goes through a scope class** restricting visible records — authorization
 on a list is a query concern, not a per-row check after loading everything.
 - **Authorization failures are caught at the request-handler layer** and return an appropriate HTTP
 response, not a stack trace.
 - **Authorization is opt-out, like authentication.** The base request handler verifies that every action authorized: `after_action :verify_authorized`, and `after_action :verify_policy_scoped` on index actions (Pundit). An action that never called the policy raises, in tests and in production. **This is required for new projects; existing projects adopt it as able.** CanCan projects meet the same result with `check_authorization` in the base controller.
 - **Fetching a record by id goes through the policy scope** (`policy_scope(Invoice).find(id)`, or `Invoice.accessible_by(current_ability)` in CanCan), then `authorize`. A bare `Invoice.find(params[:id])` followed by an update is the failure this rule exists to prevent.
-- **Skipping is explicit and visible:** `skip_authorization` (CanCan: `skip_authorization_check`) with a comment saying why, which is the only way to opt an action out.
+- **Skipping is explicit and visible:** `skip_authorization` (CanCan: `skip_authorization_check`) with a comment saying why, which is the only way to opt an action out. An index that is deliberately unscoped also needs `skip_policy_scope`, because `skip_authorization` does not cover the scope check.
 
 *Authorization is a layer in [Architecture §1.1](01-architecture.md), and **policies are required wherever authorization applies**; they are optional in Architecture §1.1 only for code with no authorization concern.*
 
