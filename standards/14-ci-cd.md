@@ -92,7 +92,10 @@ fail intermittently, which is worse than failing consistently.
 data is disposable by definition.
 - **The image matches the major version production runs on RDS** (`{major}` below), so CI tests
 against the engine that ships.
-- **No hardcoded values.** Environment comes from GitHub Actions variables.
+- **No hardcoded values.** The suite's environment comes from GitHub Actions variables, using the
+names listed in `.env.example`. `.env.test` is local and is not committed ([Testing §3.7](03-testing.md)).
+The address of a service container, set in the workflow beside the service, is part of the
+workflow and not hardcoded configuration.
 - Install SQL client tools only where the project integrates with MSSQL.
 
 ```yaml
