@@ -223,6 +223,86 @@ field names appear only in the adapter. A service test passes
 `invoices: double(invoice: InvoiceData.new(…))` and touches no client. Replacing the vendor means
 writing another adapter, and the service is untouched.
 
+**What each costs, and what each buys.** Take the same service three ways and test it:
+
+*No injection.* The service builds its own client, so a test has to stub the vendor's HTTP and
+knows the URL and the wire format:
+
+```ruby
+it 'creates the invoice' do
+  # Arrange
+  stub_request(:get, 'https://agris.example/invoices/42')
+    .to_return(body: { invoice_no: 'A-1', amount_cents: 500 }.to_json)
+
+  # Act
+  InvoiceSyncService.new(id: 42).call
+
+  # Assert
+  expect(Invoice.last).to have_attributes(number: 'A-1', total_cents: 500)
+end
+```
+
+*Injection only.* The test hands in a client double, so it needs no HTTP, but it builds the client's
+type:
+
+```ruby
+it 'creates the invoice' do
+  # Arrange
+  record = AgrisServices::Invoice.new(invoice_no: 'A-1', amount_cents: 500)
+  client = instance_double(AgrisServices::Client, fetch_invoice: record)
+
+  # Act
+  InvoiceSyncService.new(id: 42, client: client).call
+
+  # Assert
+  expect(Invoice.last).to have_attributes(number: 'A-1', total_cents: 500)
+end
+```
+
+*Inversion.* The service test builds only the service's own type. The translation is tested once,
+on the adapter:
+
+```ruby
+it 'creates the invoice' do
+  # Arrange
+  data = InvoiceSyncService::InvoiceData.new(number: 'A-1', total_cents: 500)
+  invoices = instance_double(AgrisInvoiceGateway, invoice: data)
+
+  # Act
+  InvoiceSyncService.new(id: 42, invoices: invoices).call
+
+  # Assert
+  expect(Invoice.last).to have_attributes(number: 'A-1', total_cents: 500)
+end
+
+# The adapter's own test, where the vendor's field names are allowed to appear
+it 'translates the client record into invoice data' do
+  # Arrange
+  record = AgrisServices::Invoice.new(invoice_no: 'A-1', amount_cents: 500)
+  client = instance_double(AgrisServices::Client, fetch_invoice: record)
+
+  # Act
+  data = AgrisInvoiceGateway.new(client: client).invoice(42)
+
+  # Assert
+  expect(data).to have_attributes(number: 'A-1', total_cents: 500)
+end
+```
+
+| | No injection | Injection only | Inversion |
+| --- | --- | --- | --- |
+| **A service test stubs** | The vendor's HTTP: URL and JSON | The client's return type | The service's own type |
+| **A service test breaks when** | The vendor's wire format changes | The client's types change | Only the adapter's test breaks |
+| **Replacing the vendor means** | Rewriting the service and its tests | Rewriting the service and its tests | A new adapter |
+| **Extra code** | None | A constructor argument | An adapter, a type, a composition line |
+| **Our rule** | Prohibited ([§1.2](01-architecture.md), [Testing §3.7](03-testing.md)) | Required | Optional |
+
+**Injection delivers most of the testability.** What inversion adds is insulation: the service stops
+depending on the client's types, so a change there lands in one class, and the vendor becomes
+replaceable. If the client already returns stable types of its own and a single service uses it,
+the adapter buys little and costs a class. Add it when the table's second and third rows are a
+problem you have, not as a default.
+
 In Ruby the interface is a documented duck type; in TypeScript it is an `interface`. An adapter that
 only forwards calls without translating anything is a pass-through with a namespace — do not add
 one ([External Integrations §10.1](10-external-integrations.md)).
