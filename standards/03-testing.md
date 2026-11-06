@@ -219,8 +219,10 @@ followable.**
 
 ### Environment variables in tests
 
-**`.env.test` holds whatever the suite needs.** Not an exception to anything — it is how the test
-environment gets configured.
+**`.env.test` holds whatever the suite needs, locally.** Not an exception to anything — it is how
+the test environment gets configured. It is not committed ([Configuration §8.1](08-configuration-secrets.md)):
+CI supplies the same variables from GitHub Actions variables ([CI/CD §14.3](14-ci-cd.md)), and
+`.env.example` lists every one, so the two sources cannot drift unseen.
 
 **Beyond that, a compliant codebase does not need to change `ENV` in a test at all.** Configuration
 is read at boot and injected (§8.1), so nothing reads `ENV` while a test runs — and a feature test

@@ -34,8 +34,9 @@ credential?** If not, something is in the wrong place.
 `process.env.KEY ?? throw`. A missing required variable fails at boot, loudly, not at 2am on
 the one code path that reads it.
 - **Optional values have sensible defaults.**
-- **Never commit a `.env` file.** Provide `.env.example`, listing every required variable with
-no real values. It is the documentation of what the app needs.
+- **Never commit a `.env` file** — that includes `.env.test`, which is local only. Provide
+`.env.example`, listing every required variable, **including those the test suite needs**, with no
+real values. It is the documentation of what the app needs.
 
 ### Environment variables are read in configuration space, nowhere else
 
@@ -85,7 +86,7 @@ grepping its body for `ENV`.
 needs; it does not reach out for it. `ENV` is global state, and §1.2 already prohibits
 dependencies arriving that way — this names the most common instance.
 
-> **Testing it.** Never stub `ENV`. Suite-wide test configuration goes in `.env.test`, and a
+> **Testing it.** Never stub `ENV`. Suite-wide test configuration goes in `.env.test` (local, not committed), and a
 compliant codebase needs nothing else — nothing reads `ENV` while a test runs. **Have the loader
 take the environment as a parameter** (`AgrisConfig.from(ENV)`) and configuration space itself
 is testable with a plain hash. ClimateControl is for legacy code and vendor libraries only —
