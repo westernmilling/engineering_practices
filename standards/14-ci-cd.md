@@ -32,8 +32,9 @@ self-hosted runners carry risks we avoid by not using them.
 | `pull_request.yml` | `pull_request` | Calls lint + test |
 | `main.yml` | `push` to `main` | Calls lint + test + deploy to staging |
 
-- **Reusable workflows are never triggered by repository events** (`push`, `pull_request`), only
-  by `workflow_call`. The one addition is `deploy.yml`, which also accepts `workflow_dispatch` for
+- **Repository events trigger a composition workflow, which calls the reusable ones.** The
+  reusable workflows do not respond to `push` or `pull_request` themselves, only to
+  `workflow_call`. The one addition is `deploy.yml`, which also accepts `workflow_dispatch` for
   manual production deploys.
 - **`deploy` declares `needs: [lint, test]`** and runs only if both pass.
 - **Merges to main auto-deploy to staging.**
