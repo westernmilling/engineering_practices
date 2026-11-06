@@ -121,6 +121,7 @@ own page and is not final until they close.
 | Page | Open decision |
 | --- | --- |
 | §6 Code Review | Automated pre-review (Copilot or similar): adopt it or not |
+| §6 Code Review | Proposal, not a standard: tag review corrections with their cause, as hints to AI agents about mistakes made. No definition yet |
 | §7 README | The QA paragraph needs confirming with QA before publishing |
 | §8 Configuration & Secrets | Where non-secret application config lives: Parameter Store or Secrets Manager |
 | §12 Dependencies | Prisma: the concerns behind not locking it in are not written down |

@@ -125,7 +125,7 @@ Sometimes a PR fundamentally misses the original intent. Then:
 - Attributable sign-off before merge, and who owns the outcome.
 - Correcting in the PR rather than locally.
 - The human reads every line.
-- Tagging corrections with their cause.
+- Tagging corrections with their cause: a proposal, not a standard ([hub](README.md), Open items).
 
 **PR size, and pushing back on one too large to review**, is
 [Version Control §5.5](05-version-control.md).
@@ -139,16 +139,15 @@ review comments (`praise:`, `nitpick:`, `issue:`, `suggestion:`, with `(blocking
 Not adopted, for three reasons:
 
 1. **It is unversioned**, so it can change under us without notice.
-2. **It collides with correction-cause tagging**, which already claims the first word of a review
-comment. You cannot write `issue: context: …`.
+2. **It would pre-empt the cause-tagging proposal** ([hub](README.md), Open items), which would
+also claim the first word of a review comment. You could not write `issue: context: …`.
 3. **It solves a problem of scale we do not have.** The labels earn their keep when many
 reviewers produce ambiguous tone at volume. At four engineers, "be clear about why" does the
 same work.
 
-If it is ever wanted, the clean merge is to make correction causes **decorations** rather than
+If both are ever wanted, the clean merge is to make correction causes **decorations** rather than
 prefixes — `issue (context):` — which the convention explicitly supports for
-organisation-specific tags. That would cost one more convention to remember, on a practice
-already judged borderline.
+organisation-specific tags.
 
 ---
 
