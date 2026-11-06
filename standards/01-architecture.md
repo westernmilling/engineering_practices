@@ -163,7 +163,8 @@ injection everywhere. We require inversion only where it earns its place — sev
 fill the same role, or a domain model far from the client's types.
 
 *Injection only.* The client is injected, so the service is testable, but it speaks the client's
-types:
+types. Each `.call` below returns the `Invoice` it created, so a test asserts on the result and
+never has to go looking for the record:
 
 ```ruby
 class InvoiceSyncService
@@ -235,10 +236,10 @@ it 'creates the invoice' do
     .to_return(body: { invoice_no: 'A-1', amount_cents: 500 }.to_json)
 
   # Act
-  InvoiceSyncService.new(id: 42).call
+  result = InvoiceSyncService.new(id: 42).call
 
   # Assert
-  expect(Invoice.last).to have_attributes(number: 'A-1', total_cents: 500)
+  expect(result).to have_attributes(number: 'A-1', total_cents: 500)
 end
 ```
 
@@ -252,10 +253,10 @@ it 'creates the invoice' do
   client = instance_double(AgrisServices::Client, fetch_invoice: record)
 
   # Act
-  InvoiceSyncService.new(id: 42, client: client).call
+  result = InvoiceSyncService.new(id: 42, client: client).call
 
   # Assert
-  expect(Invoice.last).to have_attributes(number: 'A-1', total_cents: 500)
+  expect(result).to have_attributes(number: 'A-1', total_cents: 500)
 end
 ```
 
@@ -269,10 +270,10 @@ it 'creates the invoice' do
   invoices = instance_double(AgrisInvoiceGateway, invoice: data)
 
   # Act
-  InvoiceSyncService.new(id: 42, invoices: invoices).call
+  result = InvoiceSyncService.new(id: 42, invoices: invoices).call
 
   # Assert
-  expect(Invoice.last).to have_attributes(number: 'A-1', total_cents: 500)
+  expect(result).to have_attributes(number: 'A-1', total_cents: 500)
 end
 
 # The adapter's own test, where the vendor's field names are allowed to appear
