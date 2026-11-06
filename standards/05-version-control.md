@@ -56,7 +56,7 @@ commit's body, which is the PR description, is one of the few durable, append-on
 | **Trailing period** | None | Unspecified |
 | **Body** | Wrap at 72. Explain **why** and what changed at a high level. Do not narrate edits line by line | Unspecified |
 
-The type list is closed by convention now, and by the hook once it exists. Adding one is a
+The type list is closed by convention, and by the commit check in projects that have adopted it (§5.7). Adding one is a
 conversation, not a violation.
 
 **Scope** is a noun in parentheses naming the affected area: `feat(auth):`, `fix(parser):`.
@@ -69,7 +69,7 @@ describing the impact: `feat(api)!: remove v1 endpoints`.
 
 | Token | Use |
 | --- | --- |
-| `Task: PROJ-42` | The Jira issue. Omit in GitHub-only mode |
+| `Task: PROJ-42` or `Task: #42` | The tracker issue: a Jira key or a GitHub issue number. Omit when there is no issue |
 | `BREAKING CHANGE: <description>` | Required when `!` is used |
 | `Co-Authored-By:` | Attribution |
 
@@ -111,16 +111,18 @@ delivers; for a single-commit PR it matches the commit subject.
 
 ## 5.4 Branch naming
 
-`{issue-id}/{type}/{short-description}` — all lowercase.
+`[{issue-id}/]{type}/{short-description}` — all lowercase. The issue id is optional.
 
 ```
 proj-42/feat/status-page
 proj-12/fix/login-redirect
 proj-8/refactor/extract-auth-service
+42/fix/null-invoice-date
+feat/status-page
 ```
 
-- `{issue-id}` — Jira key, or a GitHub issue number. In GitHub-only mode use just the type:
-`feat/status-page`.
+- `{issue-id}` — Jira key or GitHub issue number, when an issue exists. Without one, start with
+the type: `feat/status-page`. It matches the `Task:` footer in §5.2.
 - `{type}` — a Conventional Commits type from §5.2.
 - `{short-description}` — kebab-case, 2–4 words.
 
@@ -205,4 +207,4 @@ Recorded so these are not reintroduced as oversights.
 | **Complexity Escalation Loop** (pause / report / hand back / triage gate) | Scope change is not an engineering concern |
 | **`Spec:` and `AC:` footers**, and spec-slice PR scoping | The durable spec they referenced is retired |
 | **Maintainer sign-off to waive a commit violation** | Once the check is a hook there is nothing to waive — and "maintainer" was a role appearing nowhere else in the corpus. Removed now rather than later, because a waiver process for a rule nobody enforces is pure ceremony |
-| **"PRs from non-conforming branches are rejected in review"** | Rejection is the wrong response to a fixable format error. Renaming a branch is cheap; the review continues. Kept as a review check until CI takes it (§5.7) |
+| **"PRs from non-conforming branches are rejected in review"** | Rejection is the wrong response to a fixable format error. Renaming a branch is cheap; the review continues. Kept as a review check in projects that have not adopted the CI check (§5.7) |
