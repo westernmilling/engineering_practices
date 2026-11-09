@@ -127,12 +127,31 @@ build ──► migrate ──► deploy-web
 The migrate job runs a dedicated ECS task family and the service deployments declare a dependency
 on it, so **nothing updates until migrations have succeeded.**
 
+**Deploys are serialized per project and environment.** A discrete task runs once per workflow
+run, but two merges close together start two runs, and nothing in a task family or `needs`
+orders separate runs. The deploy workflow declares a concurrency group that never cancels:
+
+```yaml
+concurrency:
+  group: deploy-${{ github.repository }}-<environment>
+  cancel-in-progress: false
+```
+
+- **`cancel-in-progress: false` is the point.** A second deploy waits for a migration that is
+already running; cancelling it would leave a half-applied migration.
+- **GitHub keeps one waiting run per group.** A third run replaces the second. That is acceptable
+because each run builds and deploys its own commit and the newest one wins, but expect skipped
+runs.
+- **The migration tool's own lock is the backstop.** Rails takes a database advisory lock during
+`db:migrate`, so two overlapping migrate tasks wait for one another. Where a project uses another
+tool, confirm that it has a lock before relying on it.
+
 **Why this rather than migrating on container start:**
 
 |  | Discrete task | Entrypoint |
 | --- | --- | --- |
 | **How often it runs** | Once | Once per task that starts |
-| **Concurrency** | Not possible | Needs a rule that only the web task migrates |
+| **Concurrency** | One task per run; runs are serialized (above) | Needs a rule that only the web task migrates |
 | **Failure looks like** | A failed deploy step, with logs | A container crash loop |
 | **Health check grace period** | Irrelevant | Must exceed migration time, or the deploy kills itself |
 | **Workers** | Wait for it by declared dependency | Start whenever, hopefully after |
