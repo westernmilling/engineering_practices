@@ -43,6 +43,9 @@ self-hosted runners carry risks we avoid by not using them.
 - **Every production deploy, promoted or manual, runs against a protected `production` environment:** required reviewers, deployment limited to `main`, and the OIDC trust for the production role pinned to that environment ([Configuration §8.2](08-configuration-secrets.md)).
 - **Migrations are their own job**, between build and deploy, with the service deployments
 depending on it — see [Deployment §15.6](15-deployment.md).
+- **Deploys are serialized per project and environment** by a `concurrency` group with
+`cancel-in-progress: false`, so a second deploy waits for a running migration instead of
+cancelling it (§15.6).
 
 ```yaml
 # pull_request.yml
