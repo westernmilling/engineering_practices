@@ -1,7 +1,7 @@
 # 9. Authentication & Authorization
 
 > Mirrored from Confluence: [9. Authentication & Authorization](https://westernmilling.atlassian.net/wiki/spaces/SD/pages/4919787522/9.+Authentication+Authorization)
-> Space `SD` · page `4919787522` · last modified in Confluence Oct 28, 2026.
+> Space `SD` · page `4919787522` · last modified in Confluence Nov 10, 2026.
 > Confluence is the source of truth; this copy is for reading in-repo and by tooling.
 
 ## Baseline

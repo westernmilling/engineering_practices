@@ -1,7 +1,7 @@
 # 13. Infrastructure
 
 > Mirrored from Confluence: [13. Infrastructure](https://westernmilling.atlassian.net/wiki/spaces/SD/pages/4919263234/13.+Infrastructure)
-> Space `SD` · page `4919263234` · last modified in Confluence Oct 27, 2026.
+> Space `SD` · page `4919263234` · last modified in Confluence Nov 10, 2026.
 > Confluence is the source of truth; this copy is for reading in-repo and by tooling.
 
 Terraform. **All AWS infrastructure is defined as code — no resource is created by hand in the

@@ -1,7 +1,7 @@
 # 1. Architecture
 
 > Mirrored from Confluence: [1. Architecture](https://westernmilling.atlassian.net/wiki/spaces/SD/pages/4919394307/1.+Architecture)
-> Space `SD` · page `4919394307` · last modified in Confluence Oct 27, 2026.
+> Space `SD` · page `4919394307` · last modified in Confluence Nov 10, 2026.
 > Confluence is the source of truth; this copy is for reading in-repo and by tooling.
 
 Layering, and the objects each layer is made of.

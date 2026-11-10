@@ -1,7 +1,7 @@
 # 15. Deployment
 
 > Mirrored from Confluence: [15. Deployment](https://westernmilling.atlassian.net/wiki/spaces/SD/pages/4918673413/15.+Deployment)
-> Space `SD` · page `4918673413` · last modified in Confluence Oct 28, 2026.
+> Space `SD` · page `4918673413` · last modified in Confluence Nov 10, 2026.
 > Confluence is the source of truth; this copy is for reading in-repo and by tooling.
 
 Where applications run, how they get there, and how to get back.
