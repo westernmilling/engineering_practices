@@ -54,7 +54,7 @@ commit's body, which is the PR description, is one of the few durable, append-on
 | **Description case** | Lowercase first letter — the type prefix already provides structure | Any casing, "best to be consistent" |
 | **Length** | 50 chars soft (warn), 72 hard (needs a stated reason) | No limit |
 | **Trailing period** | None | Unspecified |
-| **Body** | Wrap at 72. Explain **why** and what changed at a high level. Do not narrate edits line by line | Unspecified |
+| **Body** | Wrap at 72 in commits on the branch. A PR description, which becomes the squash body (§5.6), is written for rendered markdown and is not wrapped. Explain **why** and what changed at a high level. Do not narrate edits line by line | Unspecified |
 
 The type list is closed by convention, and by the commit check in projects that have adopted it (§5.7). Adding one is a
 conversation, not a violation.
@@ -154,7 +154,9 @@ description.
 - **Squash-merge.** `main` gets one clean commit per PR, built from the **PR title** (the
 subject; CI checks it against §5.2) and the **PR description** (the body). `Task:` and
 `BREAKING CHANGE` footers go at the end of the description so they survive the squash.
-Repositories set the squash default to *Pull request title and description*.
+Repositories set the squash default to *Pull request title and description*. Because the
+description lands on `main`, it states the change and why, not the history of the PR; keep
+review-process narrative in comments.
 - **A human merges.** Always — agents never do. The blast radius is irreversible, so this stays
 a human action permanently.
 - **The PR page keeps the full trail** — commits, diffs and review conversation survive the
