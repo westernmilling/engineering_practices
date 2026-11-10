@@ -1,7 +1,7 @@
 # 11. Containers & Local Development
 
 > Mirrored from Confluence: [11. Containers & Local Development](https://westernmilling.atlassian.net/wiki/spaces/SD/pages/4918968324/11.+Containers+Local+Development)
-> Space `SD` · page `4918968324` · last modified in Confluence Oct 28, 2026.
+> Space `SD` · page `4918968324` · last modified in Confluence Nov 10, 2026.
 > Confluence is the source of truth; this copy is for reading in-repo and by tooling.
 
 Every project is containerized. The Dockerfile serves two purposes — production deployment and

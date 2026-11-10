@@ -1,7 +1,7 @@
 # Engineering Standards
 
 > Mirrored from Confluence: [Engineering Standards](https://westernmilling.atlassian.net/wiki/spaces/SD/pages/4918935555/Engineering+Standards)
-> Space `SD` · page `4918935555` · last modified in Confluence Oct 28, 2026.
+> Space `SD` · page `4918935555` · last modified in Confluence Nov 10, 2026.
 > Confluence is the source of truth; this copy is for reading in-repo and by tooling.
 
 **Status:** Approved · **Version:** 1.0 · **Revised:** 2026-10-28 · **Owner:** Joe Bridgwater-Rowe

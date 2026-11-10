@@ -1,7 +1,7 @@
 # 14. CI/CD
 
 > Mirrored from Confluence: [14. CI/CD](https://westernmilling.atlassian.net/wiki/spaces/SD/pages/4919623683/14.+CI+CD)
-> Space `SD` · page `4919623683` · last modified in Confluence Oct 28, 2026.
+> Space `SD` · page `4919623683` · last modified in Confluence Nov 10, 2026.
 > Confluence is the source of truth; this copy is for reading in-repo and by tooling.
 
 All projects use GitHub Actions. Workflows are modular and reusable.

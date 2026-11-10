@@ -1,7 +1,7 @@
 # 10. External Integrations
 
 > Mirrored from Confluence: [10. External Integrations](https://westernmilling.atlassian.net/wiki/spaces/SD/pages/4919689219/10.+External+Integrations)
-> Space `SD` · page `4919689219` · last modified in Confluence Oct 27, 2026.
+> Space `SD` · page `4919689219` · last modified in Confluence Nov 10, 2026.
 > Confluence is the source of truth; this copy is for reading in-repo and by tooling.
 
 Talking to Agris, Syspro, Great Plains, Microsoft Graph, and anything else we do not own.
