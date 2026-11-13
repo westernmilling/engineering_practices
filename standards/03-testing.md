@@ -12,6 +12,7 @@
 | **Kent Beck on TDD** | Test-first: one failing test, minimal code to pass, repeat |
 | **Arrange–Act–Assert** | The three phases of a test |
 | **[thoughtbot — *Let's Not*](https://thoughtbot.com/blog/lets-not)** and **[*My issues with Let*](https://thoughtbot.com/blog/my-issues-with-let)** | The argument behind §3.4 |
+| **[Better Specs](https://www.betterspecs.org/)** | Most of its recommendations. The table below lists where we adopt, where we differ and why |
 
 **Where we sit on Fowler's spectrum.** Fowler presents classical and mockist testing as a
 genuine choice and does not pick. **We pick classical** — assert the outcome, not the
@@ -24,19 +25,30 @@ never as a pre-programmed expectation. That single choice explains most of §3.7
 *Fowler's term for asserting interactions is "behaviour verification". That is not what §3.8
 means by behaviour — see the note there.*
 
-### Considered and not adopted
+### How we use Better Specs
 
-**[Better Specs](https://www.betterspecs.org/)** — the best-known RSpec convention collection,
-and we contradict it on three of its recommendations:
+**We adopt most of [Better Specs](https://www.betterspecs.org/).** Where we differ, the reason is
+in the table.
 
-| Better Specs says | We say |
+| Better Specs recommends | We |
 | --- | --- |
-| Use `let` for lazy-loaded setup | **`let` is prohibited** (§3.4) |
-| One expectation per unit test | Multiple assertions are allowed (§3.13) |
-| Use shared examples to remove duplication | Factories and helpers called by name; `include` only for testing vocabulary such as matchers (§3.4) |
-
-Citing it as a baseline would mean citing a document that disagrees with us on the rules we most
-care about. Listed here so its absence reads as a decision.
+| Describe methods with `.class_method` and `#instance_method` | Adopt (§3.5) |
+| Start contexts with `when`, `with`, `without` | Adopt (§3.5) |
+| Keep descriptions short, and split long ones into a context | Adopt as guidance, with no hard limit (§3.5) |
+| Test valid, edge and invalid cases | Adopt (§3.9) |
+| `expect` syntax, `is_expected` for one-liners | Adopt, and configure RSpec to reject `should` syntax (§3.11) |
+| Don't use "should" in descriptions | Adopt (§3.5) |
+| Mock only when needed | Adopt, and stricter (§3.7, §3.8) |
+| Create only the data you need | Adopt (§3.4) |
+| Factories, not fixtures | Adopt (§3.6) |
+| Readable matchers | Adopt (§3.9) |
+| Stub HTTP requests | Adopt (§3.7) |
+| One expectation per isolated unit test | **Differ.** One outcome per test, which may take several assertions on the same result. No assertion-count limit (§3.13) |
+| `let` and `let!` | **Differ.** Prohibited (§3.4) |
+| `subject` | **Differ.** Explicit `subject { }` blocks are prohibited for the same reasons as `let`. The implicit subject is fine for one-line `is_expected` matchers (§3.4) |
+| Shared examples | **Differ.** Inline by default, with one narrow exception (§3.4) |
+| Avoid controller specs | **Differ.** §3.14 keeps controller specs for UI features, with request specs for APIs and feature specs for UI |
+| Guard, Rails preloading, a formatter | Out of scope. Project tooling choices |
 
 ---
 
@@ -117,6 +129,16 @@ overridable in nested contexts, so as a spec grows it stops being obvious where 
 from or which override is in effect — and a `let` redefined in two contexts has defeated the
 DRY-ing it was there for. The thoughtbot posts in the baseline make the full argument.
 
+### No explicit `subject`
+
+`subject` is lazy, like `let`, and has the same cost: the reader has to find where it was defined
+and which override is in effect. **Explicit `subject { }` blocks are prohibited.** Build the object
+in the Arrange phase with `described_class.new(...)` and a named local.
+
+**The implicit subject remains fine for one-line matchers**, such as
+`it { is_expected.to validate_presence_of(:name) }`, where the matcher reads as a statement about the
+described class and there is nothing to set up.
+
 ### Call factories directly
 
 **`create(:batch, status: :pending)` is already the builder.** Do not wrap it. A
@@ -158,6 +180,19 @@ than domain data:
 **The test:** does it extend the *language* of a test, or supply the *subject* of one? Language
 can be included, because a matcher reads as a matcher. A subject is named at the point of use.
 
+### Shared examples
+
+**Shared examples are defined in the spec that uses them.** A shared example used by many files is
+a hidden dependency of every one of them, and the reader has to leave the file to learn what a test
+asserts.
+
+**The exception is a behavioural contract that several implementations of one interface must
+satisfy**, for example "every rule responds to `#violation` with nil or a message". These may live
+in `spec/support`, under a name that states the contract (`it_behaves_like 'a rule'`).
+
+**Shared setup, shared data and shared contexts across files are not allowed.** They hide what a
+test depends on, which is the problem §3.4 exists to prevent.
+
 ## 3.5 Grouping hierarchy
 
 ```
@@ -169,6 +204,13 @@ Unit under test (class, module, component)
 
 Maximum four levels. Integration and feature tests may use domain language — `scenario`,
 `feature` — instead of `describe` / `it`.
+
+**Describe names:** `describe '.name'` for a class method and `describe '#name'` for an instance
+method.
+
+**Descriptions read as a sentence together with their context**, in the third person present
+tense: "returns the missing message", not "should return the missing message". A description that
+runs long is a sign to split it into a context. There is no hard length limit.
 
 ## 3.6 Factories
 
@@ -311,6 +353,8 @@ the result is binding, the route to it is not.*
 
 ## 3.9 Assertion patterns
 
+**Cover the valid case, the edge cases and the invalid cases**, not only the happy path.
+
 Structured matchers, not field-by-field comparison. Assert on object shape rather than whole-object
 equality; on collection contents without depending on order; on a subset of fields when the rest
 do not matter; and on **both the type and the message** of an error.
@@ -331,7 +375,8 @@ do not matter; and on **both the type and the message** of an error.
 
 ## 3.11 Configuration
 
-Every project configures: **randomised order with a reproducible seed** · **verified or type-safe
+Every project configures: **randomised order with a reproducible seed** · **`expect` syntax only**
+(`should` syntax rejected) · **verified or type-safe
 mocks** · automatic support-file loading · **database isolation** (transactional by default,
 truncation for integration tests running app and test in separate threads) · **coverage
 reporting**.
