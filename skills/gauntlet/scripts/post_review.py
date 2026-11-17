@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
 """Build a comment-only GitHub review from a draft and post it.
 
-Usage: post_review.py draft.json [--dry-run]
+Usage: post_review.py draft.json [--dry-run] [--agent NAME]
 
 draft.json: {"repo": "owner/repo", "pr": 9, "summary": "...",
              "comments": [{"path": "...", "line": 12, "body": "..."}]}
 
+--agent names the tool that drafted the review in the credit line (default "Claude Code").
 --dry-run prints the review payload and posts nothing. Always run it first and show
 the result to the user: a real run posts under their name.
 """
+import argparse
 import hashlib
 import json
 import re
@@ -22,7 +24,8 @@ BADGE_URL = (
     "skills/gauntlet/assets/badge.png?raw=true"
 )
 BADGE = f'<img src="{BADGE_URL}" width="72" alt="The Gauntlet">'
-CREDIT = "🤖 Drafted with Claude Code, reviewed and approved by {reviewer} before posting."
+DEFAULT_AGENT = "Claude Code"
+CREDIT = "🤖 Drafted with {agent}, reviewed and approved by {reviewer} before posting."
 
 
 def marker_id(path, line, body):
@@ -61,7 +64,7 @@ def parse_diff_lines(diff_text):
     return lines_by_path
 
 
-def build_review(draft, reviewer, existing_markers, diff_lines):
+def build_review(draft, reviewer, existing_markers, diff_lines, agent=DEFAULT_AGENT):
     inline = []
     moved = []
     for comment in draft["comments"]:
@@ -82,7 +85,7 @@ def build_review(draft, reviewer, existing_markers, diff_lines):
     summary = draft["summary"]
     if moved:
         summary += "\n\nComments on lines outside the diff:\n" + "\n".join(moved)
-    summary += "\n\n" + BADGE + "\n\n" + CREDIT.format(reviewer=reviewer)
+    summary += "\n\n" + BADGE + "\n\n" + CREDIT.format(agent=agent, reviewer=reviewer)
     return {"event": "COMMENT", "body": summary, "comments": inline}
 
 
@@ -100,13 +103,14 @@ def paginated_bodies(run, endpoint):
 
 
 def main(argv, run=subprocess.run):
-    args = [a for a in argv[1:] if a != "--dry-run"]
-    dry_run = "--dry-run" in argv[1:]
-    if len(args) != 1:
-        print(__doc__, file=sys.stderr)
-        return 2
+    parser = argparse.ArgumentParser(prog="post_review.py", description=__doc__.split("\n")[0])
+    parser.add_argument("draft")
+    parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--agent", default=DEFAULT_AGENT)
+    options = parser.parse_args(argv[1:])
+    dry_run = options.dry_run
 
-    with open(args[0]) as handle:
+    with open(options.draft) as handle:
         draft = json.load(handle)
     repo, pr = draft["repo"], draft["pr"]
 
@@ -117,7 +121,7 @@ def main(argv, run=subprocess.run):
     )
     diff_lines = parse_diff_lines(gh(run, "pr", "diff", str(pr), "-R", repo))
 
-    review = build_review(draft, reviewer, existing, diff_lines)
+    review = build_review(draft, reviewer, existing, diff_lines, agent=options.agent)
     if review is None:
         print("Nothing new to post.")
         return 0
