@@ -1,8 +1,8 @@
-# Joe's Code Reviewer Implementation Plan
+# The Gauntlet Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** An on-demand Claude Code skill, `joe-review`, that reviews a Rails diff in Joe's voice and, only after Joe approves the exact text, posts it to the PR as a comment-only GitHub review.
+**Goal:** An on-demand Claude Code skill, `gauntlet`, that reviews a Rails diff in Joe's voice and, only after Joe approves the exact text, posts it to the PR as a comment-only GitHub review.
 
 **Architecture:** A markdown skill (`SKILL.md` plus lenses, a standards digest and voice examples) does the reasoning. Three small Python scripts do the deterministic parts: fetch Joe's past comments, check the digest for drift, and build and post the review. The skill folder lives in this repo and is symlinked into `~/.claude/skills/`, as `jira-agent` already is.
 
@@ -41,7 +41,7 @@ Failure modes the spec implies but no requirement tests. Each has a test in the 
 ## File Structure
 
 ```
-skills/joe-review/
+skills/gauntlet/
   SKILL.md                  entry point: flow, modes, output rules
   lenses.md                 design lenses as trade-off prompts
   digest.md                 standards hot points, each citing its section
@@ -53,31 +53,31 @@ skills/joe-review/
   evals/                    fixture diffs and the pass criteria
 ```
 
-Run all tests: `python3 -m unittest discover -s skills/joe-review/tests -v`
+Run all tests: `python3 -m unittest discover -s skills/gauntlet/tests -v`
 
 ---
 
 ### Task 1: Skill scaffold and install
 
 **Files:**
-- Create: `skills/joe-review/SKILL.md` (frontmatter and a one-line body for now)
-- Create: `skills/joe-review/tests/test_skill_frontmatter.py`
+- Create: `skills/gauntlet/SKILL.md` (frontmatter and a one-line body for now)
+- Create: `skills/gauntlet/tests/test_skill_frontmatter.py`
 
 **Interfaces:**
-- Produces: the folder `skills/joe-review/`, which every later task adds to.
+- Produces: the folder `skills/gauntlet/`, which every later task adds to.
 
-- [ ] **Step 1: Write the failing test** `test_name_matches_folder_and_says_joe`: reads `SKILL.md` frontmatter, asserts `name == "joe-review"` and that `description` contains `"Joe"` and `"on demand"`.
-- [ ] **Step 2: Run it**: `python3 -m unittest discover -s skills/joe-review/tests -v`. Expected: FAIL, no `SKILL.md`.
-- [ ] **Step 3: Create `SKILL.md`** with frontmatter `name: joe-review` and a description stating it is Joe's personal on-demand Rails reviewer, used when Joe asks to review a PR or branch.
+- [ ] **Step 1: Write the failing test** `test_name_matches_folder_and_says_joe`: reads `SKILL.md` frontmatter, asserts `name == "gauntlet"` and that `description` contains `"Joe"` and `"on demand"`.
+- [ ] **Step 2: Run it**: `python3 -m unittest discover -s skills/gauntlet/tests -v`. Expected: FAIL, no `SKILL.md`.
+- [ ] **Step 3: Create `SKILL.md`** with frontmatter `name: gauntlet` and a description stating it is Joe's personal on-demand Rails reviewer, used when Joe asks to review a PR or branch.
 - [ ] **Step 4: Run it.** Expected: PASS.
-- [ ] **Step 5: Install**: `ln -s "$PWD/skills/joe-review" ~/.claude/skills/joe-review`. Verify with `ls -l ~/.claude/skills/joe-review`. Expected: points into this repo.
-- [ ] **Step 6: Commit** `feat(reviewer): scaffold joe-review skill`.
+- [ ] **Step 5: Install**: `ln -s "$PWD/skills/gauntlet" ~/.claude/skills/gauntlet`. Verify with `ls -l ~/.claude/skills/gauntlet`. Expected: points into this repo.
+- [ ] **Step 6: Commit** `feat(reviewer): scaffold gauntlet skill`.
 
 ### Task 2: Standards digest and drift check
 
 **Files:**
-- Create: `skills/joe-review/scripts/check_digest.py`, `skills/joe-review/digest.md`
-- Test: `skills/joe-review/tests/test_check_digest.py`
+- Create: `skills/gauntlet/scripts/check_digest.py`, `skills/gauntlet/digest.md`
+- Test: `skills/gauntlet/tests/test_check_digest.py`
 
 **Interfaces:**
 - Produces: `check(digest_path: Path, standards_dir: Path, current_tree: str) -> list[str]`, returning problem messages (empty list means clean). CLI `check_digest.py` exits 0 clean, 1 stale, 2 broken citation, and prints the problems. `current_tree` comes from `git rev-parse HEAD:standards`, run from the repo root found via `Path(__file__).resolve()` so it works through the symlink.
@@ -88,15 +88,15 @@ Run all tests: `python3 -m unittest discover -s skills/joe-review/tests -v`
 - [ ] **Step 3: Implement `check`.** A citation `[§N.M]` resolves if `standards/NN-*.md` has a `##` or `###` heading beginning `N.M `. Page number is zero-padded for the filename.
 - [ ] **Step 4: Run tests.** Expected: PASS.
 - [ ] **Step 5: Write `digest.md`.** Read `standards/` pages 01, 02, 03, 04, 05 and 12 in full. Keep only rules a diff can break: layering and service contract (§1), comments and alignment (§2), testing including the deviations table (§3), naming (§4), PR size and scope, migration separation, titles and branches (§5), adding a dependency (§12). Skip lifecycle and process rules. One sentence per rule, each citing its section. Skim pages 06–11 and 13–15 for diff-visible rules (Dockerfile, CI, secrets in config) and add any. The testing entries are Better Specs with the §3 deviations, so they flag `let`/`let!`, explicit `subject`, setup hooks, cross-file shared examples, message expectations, mocking the database, `reload`, and `allow_any_instance_of` without a named vendor reason. Set the first line from `git rev-parse HEAD:standards`.
-- [ ] **Step 6: Run the CLI.** `python3 skills/joe-review/scripts/check_digest.py`. Expected: exit 0, no output.
+- [ ] **Step 6: Run the CLI.** `python3 skills/gauntlet/scripts/check_digest.py`. Expected: exit 0, no output.
 - [ ] **Step 7: Joe reviews `digest.md`** and cuts or edits entries before the commit.
 - [ ] **Step 8: Commit** `feat(reviewer): standards digest with drift check`.
 
 ### Task 3: Voice examples
 
 **Files:**
-- Create: `skills/joe-review/scripts/fetch_voice.py`, `skills/joe-review/voice-examples.md`
-- Test: `skills/joe-review/tests/test_fetch_voice.py`
+- Create: `skills/gauntlet/scripts/fetch_voice.py`, `skills/gauntlet/voice-examples.md`
+- Test: `skills/gauntlet/tests/test_fetch_voice.py`
 
 **Interfaces:**
 - Produces: `fetch_comments(repo: str, author: str, run=subprocess.run, retries: int = 3) -> list[dict]`, each dict with `pr`, `path`, `body`. It pages with `gh api --paginate`, retries a page on an HTTP 5xx, and raises after `retries`. CLI: `fetch_voice.py westernmilling/contracto josephbridgwaterrowe > comments.json`.
@@ -113,15 +113,15 @@ Run all tests: `python3 -m unittest discover -s skills/joe-review/tests -v`
 ### Task 4: Posting
 
 **Files:**
-- Create: `skills/joe-review/scripts/post_review.py`
-- Test: `skills/joe-review/tests/test_post_review.py`
+- Create: `skills/gauntlet/scripts/post_review.py`
+- Test: `skills/gauntlet/tests/test_post_review.py`
 
 **Interfaces:**
 - Produces:
   - `parse_diff_lines(diff_text: str) -> dict[str, set[int]]`: new-side line numbers present in each file's hunks.
   - `build_review(draft: dict, reviewer: str, existing_markers: set[str], diff_lines: dict[str, set[int]]) -> dict | None`. `draft` is `{"repo", "pr", "summary", "comments": [{"path", "line", "body"}]}`. Returns the GitHub payload `{"event": "COMMENT", "body", "comments": [{"path", "line", "side": "RIGHT", "body"}]}`, or `None` when nothing is new.
   - CLI `post_review.py draft.json [--dry-run]`: dry-run prints the payload and posts nothing. Without it, posts to `repos/{repo}/pulls/{pr}/reviews`. The reviewer name is `gh api user --jq '.name // .login'`.
-- Each comment body ends with a hidden marker `<!-- joe-review:<first 12 hex of sha1(path:line:body)> -->`.
+- Each comment body ends with a hidden marker `<!-- gauntlet:<first 12 hex of sha1(path:line:body)> -->`.
 
 - [ ] **Step 1: Write failing tests**: `test_event_is_always_comment`; `test_credit_line_on_summary_only_with_reviewer_name`; `test_comment_outside_diff_moves_to_summary_as_path_line` (focus 1); `test_existing_marker_is_skipped` and `test_returns_none_when_all_comments_exist` (focus 2); `test_parse_diff_lines_tracks_added_and_context_lines`.
 - [ ] **Step 2: Run them.** Expected: FAIL.
@@ -133,8 +133,8 @@ Run all tests: `python3 -m unittest discover -s skills/joe-review/tests -v`
 ### Task 5: Review logic
 
 **Files:**
-- Modify: `skills/joe-review/SKILL.md`
-- Create: `skills/joe-review/lenses.md`
+- Modify: `skills/gauntlet/SKILL.md`
+- Create: `skills/gauntlet/lenses.md`
 
 **Interfaces:**
 - Consumes: `digest.md`, `voice-examples.md`, `check_digest.py`, `post_review.py` (Tasks 2–4).
@@ -157,7 +157,7 @@ Run all tests: `python3 -m unittest discover -s skills/joe-review/tests -v`
 ### Task 6: Evaluation
 
 **Files:**
-- Create: `skills/joe-review/evals/partial-transaction.diff`, `let-in-spec.diff`, `rubocop-only.diff`, `clean.diff`, `detail-heavy.diff`, `evals/README.md`
+- Create: `skills/gauntlet/evals/partial-transaction.diff`, `let-in-spec.diff`, `rubocop-only.diff`, `clean.diff`, `detail-heavy.diff`, `evals/README.md`
 
 - [ ] **Step 1: Write the four fixture diffs** as small realistic Rails changes:
   - `partial-transaction`: a service that saves a contract and its schedules in separate writes, so a schedule failure leaves a committed contract.

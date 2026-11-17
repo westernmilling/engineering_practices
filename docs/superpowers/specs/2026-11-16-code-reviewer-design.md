@@ -1,4 +1,4 @@
-# Code Reviewer — Design
+# The Gauntlet (Code Reviewer) — Design
 
 Status: **draft for review** · 2026-11-16 · not committed
 
@@ -166,6 +166,9 @@ findings that affect correctness are raised either way.
 
 Joe should confirm or change these.
 
+- **Name:** `gauntlet` ("The Gauntlet"), a joke on the team running the gauntlet when Joe
+  reviews. It is an internal name only. The credit line on posted reviews never mentions it, and
+  the skill description says it is Joe's reviewer.
 - **Form:** a skill invoked on demand. Whether it dispatches subagents is a planning decision.
 - **Home:** this repo (`engineering_practices`), with each target repo adding its own rules
   through its `CLAUDE.md`.
@@ -197,6 +200,17 @@ Joe should confirm or change these.
   duplicates are detected.
 - How to tell "reading a diff" from "reading the whole file" when context is needed.
 
+## 10. Known issues found while scoping
+
+- Contracto's `CLAUDE.md` still contains the retired "Spec-Driven Contract" and the
+  matching Agent Hard Rules. The reviewer must not enforce them. The file itself is not
+  changed by this work.
+- Standards §6.4 has an unresolved decision on automated pre-review.
+- A memory note mentions a CLAUDE.md footer-rule conflict that may remain. This repo has no
+  `CLAUDE.md`. Not investigated here.
+- Two copies of contracto exist locally (`~/Development/contracto` and
+  `~/Development/otto-mono/contracto`). The reviewer reads whichever repo it is run in.
+
 ## 11. Audience: Joe only, with room to grow
 
 **Is this for Joe alone, or will teammates run it too?** (The standards describe a team of
@@ -218,14 +232,3 @@ in now:
 - Distribution starts as a symlink and can become a plugin without changing the skill.
 
 Not built in v1: a shared voice, per-person voices, or any teammate onboarding.
-
-## 10. Known issues found while scoping
-
-- Contracto's `CLAUDE.md` still contains the retired "Spec-Driven Contract" and the
-  matching Agent Hard Rules. The reviewer must not enforce them. The file itself is not
-  changed by this work.
-- Standards §6.4 has an unresolved decision on automated pre-review.
-- A memory note mentions a CLAUDE.md footer-rule conflict that may remain. This repo has no
-  `CLAUDE.md`. Not investigated here.
-- Two copies of contracto exist locally (`~/Development/contracto` and
-  `~/Development/otto-mono/contracto`). The reviewer reads whichever repo it is run in.
