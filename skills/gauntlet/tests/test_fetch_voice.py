@@ -35,6 +35,10 @@ def page(*comments):
     return (json.dumps(list(comments)), 0, "")
 
 
+def no_sleep(_seconds):
+    pass
+
+
 def failure(stderr):
     return ("", 1, stderr)
 
@@ -62,7 +66,7 @@ class FetchCommentsTest(unittest.TestCase):
             page(),
         )
 
-        comments = fetch_comments("org/repo", "josephbridgwaterrowe", run=fake)
+        comments = fetch_comments("org/repo", "josephbridgwaterrowe", run=fake, sleep=no_sleep)
 
         self.assertEqual(1, len(comments))
         self.assertEqual(fake.calls[0], fake.calls[1], "the same page is requested again")
@@ -71,9 +75,33 @@ class FetchCommentsTest(unittest.TestCase):
         fake = FakeGh(*[failure("gh: Server Error (HTTP 502)")] * 3)
 
         with self.assertRaises(RuntimeError):
-            fetch_comments("org/repo", "josephbridgwaterrowe", run=fake, retries=3)
+            fetch_comments("org/repo", "josephbridgwaterrowe", run=fake, retries=3, sleep=no_sleep)
 
         self.assertEqual(3, len(fake.calls))
+
+    def test_retries_on_dropped_connection(self):
+        for stderr in ("stream error: stream ID 1; CANCEL; received from peer",
+                       "connection reset by peer",
+                       "context deadline exceeded (Client.Timeout exceeded)"):
+            with self.subTest(stderr=stderr):
+                fake = FakeGh(
+                    failure(stderr),
+                    page(api_comment("josephbridgwaterrowe", 7, "app/b.rb", "Why?")),
+                    page(),
+                )
+
+                comments = fetch_comments("org/repo", "josephbridgwaterrowe", run=fake, sleep=no_sleep)
+
+                self.assertEqual(1, len(comments))
+
+    def test_waits_longer_before_each_retry(self):
+        fake = FakeGh(failure("HTTP 502"), failure("HTTP 502"), page(), )
+        waits = []
+
+        fetch_comments("org/repo", "josephbridgwaterrowe", run=fake, sleep=waits.append)
+
+        self.assertEqual(2, len(waits))
+        self.assertLess(waits[0], waits[1])
 
     def test_non_server_error_is_not_retried(self):
         fake = FakeGh(failure("gh: Not Found (HTTP 404)"))
