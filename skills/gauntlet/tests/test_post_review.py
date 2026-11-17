@@ -71,6 +71,12 @@ class BuildReviewTest(unittest.TestCase):
         self.assertTrue(review["body"].endswith(CREDIT))
         self.assertNotIn("Drafted with Claude Code", review["comments"][0]["body"])
 
+    def test_credit_line_names_the_agent_that_drafted_it(self):
+        review = build_review(draft_with(comment()), "Joe", set(), IN_DIFF, agent="Codex")
+
+        self.assertIn("Drafted with Codex, reviewed and approved by Joe before posting.", review["body"])
+        self.assertNotIn("Claude Code", review["body"])
+
     def test_summary_embeds_the_badge_before_the_credit_line(self):
         review = build_review(draft_with(comment()), "Joe", set(), IN_DIFF)
 
@@ -168,6 +174,15 @@ class MainTest(unittest.TestCase):
 
         self.assertEqual(0, code)
         self.assertEqual([], fake.posted())
+
+    def test_agent_flag_reaches_the_credit_line(self):
+        fake = FakeGh()
+        out = io.StringIO()
+
+        with contextlib.redirect_stdout(out):
+            main(["post_review.py", self.write_draft(), "--dry-run", "--agent", "Codex"], run=fake)
+
+        self.assertIn("Drafted with Codex", json.loads(out.getvalue())["body"])
 
     def test_real_run_posts_exactly_one_review(self):
         fake = FakeGh()
