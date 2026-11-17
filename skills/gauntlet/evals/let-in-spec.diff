@@ -1,0 +1,44 @@
+diff --git a/app/services/contracts/close_contract.rb b/app/services/contracts/close_contract.rb
+new file mode 100644
+--- /dev/null
++++ b/app/services/contracts/close_contract.rb
+@@ -0,0 +1,14 @@
++module Contracts
++  class CloseContract
++    def initialize(contract, notifier: Notifier)
++      @contract = contract
++      @notifier = notifier
++    end
++
++    def call
++      @contract.update!(status: :closed)
++      @notifier.contract_closed(@contract.id)
++      @contract
++    end
++  end
++end
+diff --git a/spec/services/contracts/close_contract_spec.rb b/spec/services/contracts/close_contract_spec.rb
+new file mode 100644
+--- /dev/null
++++ b/spec/services/contracts/close_contract_spec.rb
+@@ -0,0 +1,20 @@
++RSpec.describe Contracts::CloseContract do
++  let(:contract) { create(:contract, status: :open) }
++  subject { described_class.new(contract) }
++
++  before { allow(Notifier).to receive(:contract_closed) }
++
++  describe '#call' do
++    it 'closes the contract' do
++      subject.call
++
++      expect(contract.reload.status).to eq('closed')
++    end
++
++    it 'tells the notifier' do
++      subject.call
++
++      expect(Notifier).to have_received(:contract_closed).with(contract.id)
++    end
++  end
++end

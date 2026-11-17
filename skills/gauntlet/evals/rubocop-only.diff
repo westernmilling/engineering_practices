@@ -1,0 +1,40 @@
+diff --git a/app/services/invoices/summarize.rb b/app/services/invoices/summarize.rb
+new file mode 100644
+--- /dev/null
++++ b/app/services/invoices/summarize.rb
+@@ -0,0 +1,14 @@
++module Invoices
++  class Summarize
++    Summary = Struct.new(:label, :total_cents, keyword_init: true)
++
++    def initialize(invoice)
++      @invoice = invoice
++    end
++
++    def call
++      label = "Invoice #{@invoice.number} for #{@invoice.customer_name} totalling #{@invoice.total_cents} cents issued #{@invoice.issued_on}"
++      Summary.new(label: label, total_cents: @invoice.total_cents, )
++    end
++  end
++end
+diff --git a/spec/services/invoices/summarize_spec.rb b/spec/services/invoices/summarize_spec.rb
+new file mode 100644
+--- /dev/null
++++ b/spec/services/invoices/summarize_spec.rb
+@@ -0,0 +1,16 @@
++RSpec.describe Invoices::Summarize do
++  describe '#call' do
++    it 'returns the label and the total' do
++      # Arrange
++      invoice = build(:invoice, number: 'A-1', total_cents: 500)
++      service = described_class.new(invoice)
++
++      # Act
++      result = service.call
++
++      # Assert
++      expect(result.total_cents).to eq(500)
++      expect(result.label).to start_with('Invoice A-1')
++    end
++  end
++end
