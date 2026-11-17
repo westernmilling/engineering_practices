@@ -15,7 +15,7 @@
 - Review event is `COMMENT` only. The tool never approves or requests changes.
 - Nothing is posted without Joe's approval of the exact text. `--dry-run` first, real post second.
 - One GitHub review with inline comments. Re-running on the same PR must not repost a comment already there.
-- The review summary ends with: `🤖 Drafted with Claude Code, reviewed and approved by <name> before posting.` The name comes from `gh`, never hard-coded. The credit is on the summary only.
+- The review summary ends with: `🤖 Drafted with Claude Code, reviewed and approved by <name> before posting.` The name comes from `gh`, never hard-coded. The credit is on the summary only, preceded by an embedded badge image (`skills/gauntlet/assets/badge.png`).
 - No Conventional Comments prefixes (`issue:`, `nitpick:`). Weight is stated in plain words inside the sentence.
 - Findings are phrased as questions, with the trade-off and the plain-words weight, and cite a principle only when it changes the decision.
 - Two tiers. Design findings (default cap 6, ranked) each give what was noticed, another way to do it, and the trade-off. Details (names, context, small mistakes) are inline, marked non-blocking, limited to about eight, with repeats grouped into one comment.

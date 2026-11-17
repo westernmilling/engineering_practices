@@ -153,6 +153,9 @@ findings that affect correctness are raised either way.
 4. The review summary ends with a credit line. Joe approved crediting AI. Assumed wording:
    > 🤖 Drafted with Claude Code, reviewed and approved by [user] before posting.
 5. The credit goes on the summary only, not on each inline comment.
+6. The summary also embeds the Gauntlet badge (`skills/gauntlet/assets/badge.png`, 256 px,
+   shown at 72 px) just above the credit line, never on inline comments. The image is served
+   from this repo, so it renders only for people with access and only once the branch is merged.
 
 ## 7. Constraints
 
@@ -167,8 +170,8 @@ findings that affect correctness are raised either way.
 Joe should confirm or change these.
 
 - **Name:** `gauntlet` ("The Gauntlet"), a joke on the team running the gauntlet when Joe
-  reviews. It is an internal name only. The credit line on posted reviews never mentions it, and
-  the skill description says it is Joe's reviewer.
+  reviews. Joe chose to embed a Gauntlet badge in the posted review summary, so the name is
+  not hidden. The skill description still says it is Joe's reviewer.
 - **Form:** a skill invoked on demand. Whether it dispatches subagents is a planning decision.
 - **Home:** this repo (`engineering_practices`), with each target repo adding its own rules
   through its `CLAUDE.md`.
