@@ -17,6 +17,11 @@ import sys
 
 MARKER = re.compile(r"<!-- gauntlet:([0-9a-f]{12}) -->")
 HUNK = re.compile(r"^@@ -\d+(?:,\d+)? \+(\d+)(?:,\d+)? @@")
+BADGE_URL = (
+    "https://github.com/westernmilling/engineering_practices/blob/main/"
+    "skills/gauntlet/assets/badge.png?raw=true"
+)
+BADGE = f'<img src="{BADGE_URL}" width="72" alt="The Gauntlet">'
 CREDIT = "🤖 Drafted with Claude Code, reviewed and approved by {reviewer} before posting."
 
 
@@ -77,7 +82,7 @@ def build_review(draft, reviewer, existing_markers, diff_lines):
     summary = draft["summary"]
     if moved:
         summary += "\n\nComments on lines outside the diff:\n" + "\n".join(moved)
-    summary += "\n\n" + CREDIT.format(reviewer=reviewer)
+    summary += "\n\n" + BADGE + "\n\n" + CREDIT.format(reviewer=reviewer)
     return {"event": "COMMENT", "body": summary, "comments": inline}
 
 

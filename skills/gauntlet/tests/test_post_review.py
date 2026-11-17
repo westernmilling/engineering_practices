@@ -9,7 +9,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
 
-from post_review import build_review, extract_markers, main, marker_id, parse_diff_lines  # noqa: E402
+from post_review import BADGE_URL, build_review, extract_markers, main, marker_id, parse_diff_lines  # noqa: E402
 
 DIFF = """\
 diff --git a/app/services/create_contract.rb b/app/services/create_contract.rb
@@ -70,6 +70,14 @@ class BuildReviewTest(unittest.TestCase):
 
         self.assertTrue(review["body"].endswith(CREDIT))
         self.assertNotIn("Drafted with Claude Code", review["comments"][0]["body"])
+
+    def test_summary_embeds_the_badge_before_the_credit_line(self):
+        review = build_review(draft_with(comment()), "Joe", set(), IN_DIFF)
+
+        badge = f'<img src="{BADGE_URL}"'
+        self.assertIn(badge, review["body"])
+        self.assertLess(review["body"].index(badge), review["body"].index("Drafted with Claude Code"))
+        self.assertNotIn(badge, review["comments"][0]["body"])
 
     def test_inline_comment_targets_right_side_and_carries_marker(self):
         review = build_review(draft_with(comment()), "Joe", set(), IN_DIFF)
