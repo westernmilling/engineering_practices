@@ -1,0 +1,49 @@
+diff --git a/app/services/contracts/create_contract_with_schedules.rb b/app/services/contracts/create_contract_with_schedules.rb
+new file mode 100644
+--- /dev/null
++++ b/app/services/contracts/create_contract_with_schedules.rb
+@@ -0,0 +1,20 @@
++module Contracts
++  class CreateContractWithSchedules
++    def initialize(contract_attributes:, schedules_attributes:)
++      @contract_attributes = contract_attributes
++      @schedules_attributes = schedules_attributes
++    end
++
++    def call
++      contract = Contract.create!(@contract_attributes)
++      errors = []
++
++      @schedules_attributes.each do |schedule_attributes|
++        schedule = contract.schedules.build(schedule_attributes)
++        errors << schedule.errors.full_messages unless schedule.save
++      end
++
++      Result.new(success: errors.empty?, data: contract, errors: errors.flatten)
++    end
++  end
++end
+diff --git a/spec/services/contracts/create_contract_with_schedules_spec.rb b/spec/services/contracts/create_contract_with_schedules_spec.rb
+new file mode 100644
+--- /dev/null
++++ b/spec/services/contracts/create_contract_with_schedules_spec.rb
+@@ -0,0 +1,19 @@
++RSpec.describe Contracts::CreateContractWithSchedules do
++  describe '#call' do
++    context 'with valid schedules' do
++      it 'creates the contract and its schedules' do
++        # Arrange
++        attributes = attributes_for(:contract)
++        schedules = [attributes_for(:schedule), attributes_for(:schedule)]
++        service = described_class.new(contract_attributes: attributes, schedules_attributes: schedules)
++
++        # Act
++        result = service.call
++
++        # Assert
++        expect(result).to have_attributes(success: true)
++        expect(result.data.schedules.count).to eq(2)
++      end
++    end
++  end
++end

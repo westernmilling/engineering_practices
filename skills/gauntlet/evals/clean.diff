@@ -1,0 +1,58 @@
+diff --git a/app/services/invoices/mark_paid.rb b/app/services/invoices/mark_paid.rb
+new file mode 100644
+--- /dev/null
++++ b/app/services/invoices/mark_paid.rb
+@@ -0,0 +1,15 @@
++module Invoices
++  class MarkPaid
++    def initialize(invoice:, clock: -> { Time.current })
++      @invoice = invoice
++      @clock = clock
++    end
++
++    def call
++      return @invoice if @invoice.paid?
++
++      @invoice.update!(status: :paid, paid_at: @clock.call)
++      @invoice
++    end
++  end
++end
+diff --git a/spec/services/invoices/mark_paid_spec.rb b/spec/services/invoices/mark_paid_spec.rb
+new file mode 100644
+--- /dev/null
++++ b/spec/services/invoices/mark_paid_spec.rb
+@@ -0,0 +1,33 @@
++RSpec.describe Invoices::MarkPaid do
++  describe '#call' do
++    context 'with an unpaid invoice' do
++      it 'marks it paid at the time given by the clock' do
++        # Arrange
++        invoice = create(:invoice, status: :open)
++        paid_at = Time.zone.local(2026, 11, 16, 9, 0)
++        service = described_class.new(invoice: invoice, clock: -> { paid_at })
++
++        # Act
++        result = service.call
++
++        # Assert
++        expect(result).to have_attributes(status: 'paid', paid_at: paid_at)
++      end
++    end
++
++    context 'with an already paid invoice' do
++      it 'leaves the original paid time untouched' do
++        # Arrange
++        original = Time.zone.local(2026, 11, 1, 9, 0)
++        invoice = create(:invoice, status: :paid, paid_at: original)
++        service = described_class.new(invoice: invoice, clock: -> { Time.zone.local(2026, 11, 16) })
++
++        # Act
++        result = service.call
++
++        # Assert
++        expect(result.paid_at).to eq(original)
++      end
++    end
++  end
++end

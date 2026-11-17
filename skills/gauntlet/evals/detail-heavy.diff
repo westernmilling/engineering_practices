@@ -1,0 +1,49 @@
+diff --git a/app/services/pricing/quote.rb b/app/services/pricing/quote.rb
+new file mode 100644
+--- /dev/null
++++ b/app/services/pricing/quote.rb
+@@ -0,0 +1,24 @@
++module Pricing
++  class Quote
++    BUFFER = 0.0375
++
++    def initialize(data)
++      @data = data
++    end
++
++    def call
++      process(@data)
++    end
++
++    private
++
++    def process(data)
++      total = calc(data)
++      (total * (1 + BUFFER)).round(2)
++    end
++
++    def calc(data)
++      data.lines.sum { |line| line.qty * line.price }
++    end
++  end
++end
+diff --git a/spec/services/pricing/quote_spec.rb b/spec/services/pricing/quote_spec.rb
+new file mode 100644
+--- /dev/null
++++ b/spec/services/pricing/quote_spec.rb
+@@ -0,0 +1,15 @@
++RSpec.describe Pricing::Quote do
++  describe '#call' do
++    it 'adds the buffer to the line total' do
++      # Arrange
++      order = build(:order, lines: [build(:order_line, qty: 2, price: 10.0)])
++      service = described_class.new(order)
++
++      # Act
++      result = service.call
++
++      # Assert
++      expect(result).to eq(20.75)
++    end
++  end
++end
