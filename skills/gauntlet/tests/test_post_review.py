@@ -16,7 +16,7 @@ diff --git a/app/services/create_contract.rb b/app/services/create_contract.rb
 index 111..222 100644
 --- a/app/services/create_contract.rb
 +++ b/app/services/create_contract.rb
-@@ -1,3 +1,5 @@
+@@ -1,2 +1,4 @@
  class CreateContract
 +  def call
 +  end
@@ -57,6 +57,31 @@ class ParseDiffLinesTest(unittest.TestCase):
 
     def test_deleted_files_have_no_commentable_lines(self):
         self.assertNotIn("old.rb", parse_diff_lines(DIFF))
+
+
+    def test_added_line_that_looks_like_a_file_header_stays_content(self):
+        diff = (
+            "diff --git a/a.rb b/a.rb\n--- a/a.rb\n+++ b/a.rb\n@@ -1,2 +1,4 @@\n"
+            " keep\n+++ counter;\n+x = 1\n end\n"
+        )
+
+        self.assertEqual({1, 2, 3, 4}, parse_diff_lines(diff)["a.rb"])
+
+    def test_added_line_cannot_invent_a_file(self):
+        diff = (
+            "diff --git a/a.rb b/a.rb\n--- a/a.rb\n+++ b/a.rb\n@@ -1,1 +1,3 @@\n"
+            " keep\n+++ b/other.rb\n+y = 2\n"
+        )
+
+        self.assertEqual(["a.rb"], list(parse_diff_lines(diff)))
+
+    def test_a_second_file_after_a_hunk_is_still_recognised(self):
+        diff = (
+            "diff --git a/a.rb b/a.rb\n--- a/a.rb\n+++ b/a.rb\n@@ -1,1 +1,2 @@\n keep\n+new\n"
+            "diff --git a/b.rb b/b.rb\n--- a/b.rb\n+++ b/b.rb\n@@ -1,1 +1,2 @@\n keep\n+new\n"
+        )
+
+        self.assertEqual({"a.rb", "b.rb"}, set(parse_diff_lines(diff)))
 
 
 class BuildReviewTest(unittest.TestCase):
@@ -120,6 +145,11 @@ class BuildReviewTest(unittest.TestCase):
 
         self.assertEqual(["Why not a guard clause?"], [c["body"].split("\n")[0] for c in review["comments"]])
 
+    def test_review_is_pinned_to_the_reviewed_commit(self):
+        review = build_review(draft_with(comment()), "Joe", set(), IN_DIFF, head_sha="abc123")
+
+        self.assertEqual("abc123", review["commit_id"])
+
     def test_returns_none_when_all_comments_exist(self):
         existing = {marker_id("app/a.rb", 2, "Was the transaction intentional?")}
 
@@ -138,13 +168,16 @@ class BuildReviewTest(unittest.TestCase):
 class FakeGh:
     """Answers gh calls by command shape and records them."""
 
-    def __init__(self):
+    def __init__(self, live_head="abc123"):
         self.calls = []
+        self.live_head = live_head
 
     def __call__(self, args, **kwargs):
         self.calls.append(args)
         joined = " ".join(args)
-        if args[:3] == ["gh", "api", "user"]:
+        if args[-1] == ".head.sha":
+            out = self.live_head + "\n"
+        elif args[:3] == ["gh", "api", "user"]:
             out = "Joe Bridgwater-Rowe\n"
         elif "pulls/9/comments" in joined or "pulls/9/reviews" in joined and "--input" not in args:
             out = "[]"
@@ -159,10 +192,12 @@ class FakeGh:
 
 
 class MainTest(unittest.TestCase):
-    def write_draft(self):
+    def write_draft(self, **extra):
         tmp = tempfile.NamedTemporaryFile("w", suffix=".json", delete=False)
         self.addCleanup(Path(tmp.name).unlink)
-        json.dump(draft_with(comment(path="app/services/create_contract.rb", line=2)), tmp)
+        draft = draft_with(comment(path="app/services/create_contract.rb", line=2))
+        draft.update({"head_sha": "abc123", **extra})
+        json.dump(draft, tmp)
         tmp.close()
         return tmp.name
 
@@ -193,6 +228,44 @@ class MainTest(unittest.TestCase):
         self.assertEqual(0, code)
         self.assertEqual(1, len(fake.posted()))
         self.assertIn("repos/org/repo/pulls/9/reviews", fake.posted()[0])
+
+    def test_refuses_to_post_when_the_head_has_moved(self):
+        fake = FakeGh(live_head="def456")
+        stderr = io.StringIO()
+
+        with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(stderr):
+            code = main(["post_review.py", self.write_draft()], run=fake)
+
+        self.assertEqual(1, code)
+        self.assertEqual([], fake.posted())
+        self.assertIn("moved", stderr.getvalue())
+
+    def test_dry_run_also_refuses_when_the_head_has_moved(self):
+        fake = FakeGh(live_head="def456")
+
+        with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+            code = main(["post_review.py", self.write_draft(), "--dry-run"], run=fake)
+
+        self.assertEqual(1, code)
+
+    def test_refuses_a_draft_with_no_head_sha(self):
+        fake = FakeGh()
+        stderr = io.StringIO()
+
+        with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(stderr):
+            code = main(["post_review.py", self.write_draft(head_sha=None)], run=fake)
+
+        self.assertEqual(1, code)
+        self.assertEqual([], fake.posted())
+        self.assertIn("head_sha", stderr.getvalue())
+
+    def test_review_payload_carries_the_commit_id(self):
+        out = io.StringIO()
+
+        with contextlib.redirect_stdout(out):
+            main(["post_review.py", self.write_draft(), "--dry-run"], run=FakeGh())
+
+        self.assertEqual("abc123", json.loads(out.getvalue())["commit_id"])
 
 
 if __name__ == "__main__":
