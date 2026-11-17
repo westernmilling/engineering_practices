@@ -38,8 +38,10 @@ reviewer team.
 
 **Once per engineer.**
 
-1. Get the App's private key. An owner can generate one under the App's
-   settings, Private keys. The key is a secret (see
+1. Get **your own** private key for the App. An organisation owner generates
+   it under the App's settings, Private keys, and hands it to you. Every
+   engineer has a separate key, and a key is never copied to anyone else (see
+   [Keys](#keys)). The key is a secret (see
    [Configuration & Secrets](../../standards/08-configuration-secrets.md)): never
    commit it, and never paste it into a chat or an agent session.
 2. Store it at `~/.config/claude-agent/app-key.pem` with mode 600, or set
@@ -55,6 +57,26 @@ reviewer team.
 
 It needs `bash`, `openssl`, `curl`, `jq` and `git`. `gh` is needed only if the
 session uses it.
+
+## Keys
+
+- **One key per engineer, never shared.** A key stays valid until it is
+  deleted. It does not expire, and the one-hour limit applies only to the
+  tokens made from it. Separate keys mean a lost laptop or someone leaving is
+  handled by deleting one key without affecting anyone else, and no key has to
+  be sent between people. GitHub allows several keys per App (up to 25,
+  according to its documentation).
+- **Revoke by deleting the key.** An owner deletes it under the App's settings,
+  Private keys. Tokens already minted last at most an hour.
+- **Rotate** by generating a new key, running `claude-agent check` with it, and
+  then deleting the old one.
+- **Fallback: one shared key in a secret manager.** If generating keys turns
+  out to need an organisation owner every time, hold a single key in AWS
+  Secrets Manager (see §8) and read it with `CLAUDE_AGENT_APP_KEY_CMD`. Nobody
+  keeps a copy, access is controlled and audited through IAM, and removing
+  someone's access plus rotating the key revokes them. This is not the default.
+- **Not yet confirmed:** whether anyone other than an organisation owner can
+  generate keys. Check the App's settings.
 
 ## Limits
 
