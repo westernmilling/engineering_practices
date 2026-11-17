@@ -66,6 +66,18 @@ class SkillContentTest(unittest.TestCase):
         self.assertIn('"head_sha"', SKILL)
         self.assertIn("headRefOid", SKILL)
 
+    def test_head_commit_is_read_before_the_diff_and_checked_again_after(self):
+        gather = SKILL.split("## 3. Gather", 1)[1].split("## 4.", 1)[0]
+
+        self.assertLess(gather.index("headRefOid"), gather.index("gh pr diff"))
+        self.assertIn("read the head commit again", gather)
+        self.assertIn("start over", gather)
+
+    def test_pr_metadata_is_read_for_the_pr_under_review(self):
+        mode = SKILL.split("## 2. Mode", 1)[1].split("## 3.", 1)[0]
+
+        self.assertIn("gh pr view <n> --json author,isDraft,title,body", mode)
+
 
 if __name__ == "__main__":
     unittest.main()

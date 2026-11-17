@@ -31,7 +31,8 @@ Files beside this one (read them, do not paraphrase from memory):
 
 ## 2. Mode
 
-Run `gh pr view --json author,isDraft,title,body`.
+Run `gh pr view <n> --json author,isDraft,title,body` (the PR number under review; without it
+`gh` picks the current branch's PR).
 
 - PR authored by someone else: **teammate mode**. Comments are addressed to the author.
 - PR authored by Joe (compare with `gh api user --jq .login`), or no PR yet: **self mode**. In the
@@ -44,10 +45,11 @@ Joe can override the mode.
 
 ## 3. Gather
 
-`gh pr diff <n>` for a PR, or `git diff main...HEAD` for a branch. Read whole files when the diff
-alone does not show enough context. For a PR, also note the head commit
-(`gh pr view <n> --json headRefOid --jq .headRefOid`): the review is pinned to it when posted.
-Do not modify the target repo.
+For a PR, read the head commit first (`gh pr view <n> --json headRefOid --jq .headRefOid`), then the
+diff (`gh pr diff <n>`), then read the head commit again. If the two reads differ, someone pushed
+mid-read: start over, so the diff and the SHA belong to the same commit. The review is pinned to
+that SHA when posted. For a branch, use `git diff main...HEAD`. Read whole files when the diff alone
+does not show enough context. Do not modify the target repo.
 
 ## 4. Intent
 
