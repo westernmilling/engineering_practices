@@ -2,10 +2,8 @@
 
 Runs git and gh as the GitHub App `viserion-claude-agent`, so work done by an
 agent shows as the App and not as an engineer. This is a tool for the pilot of
-the [Agent Identity and Human Approval][proposal] proposal. It is not a
-standard, and nothing here binds anyone until that proposal is adopted.
-
-[proposal]: https://westernmilling.atlassian.net/wiki/spaces/SD/pages/4942069762/Agent+Identity+and+Human+Approval
+the Agent Identity and Human Approval proposal. It is not a standard, and
+nothing here binds anyone until that proposal is adopted.
 
 ## What it does
 
@@ -19,8 +17,9 @@ claude-agent launch [--repo NAME ...] -- CMD...
 
 - the App's token in `GH_TOKEN`, so `gh` acts as the App;
 - git commits authored as `viserion-claude-agent[bot]`;
-- SSH remotes rewritten to HTTPS and git's credential helper set to the App
-  token, so a push uses the App and not your SSH key;
+- SSH remotes rewritten to HTTPS, and git's credential helpers replaced by one
+  that offers the App token to github.com only, so a push uses the App and not
+  your SSH key or a helper configured in the repository;
 - your SSH agent, your global git config (credential helpers, signing keys) and
   your `gh` login hidden from the session.
 
@@ -95,14 +94,14 @@ session uses it.
 
 ## Settings
 
+Only the key location needs setting:
+
 | Variable | Default |
 | --- | --- |
-| `CLAUDE_AGENT_APP_ID` | `5240375` |
-| `CLAUDE_AGENT_APP_SLUG` | `viserion-claude-agent` |
-| `CLAUDE_AGENT_ORG` | `westernmilling` |
 | `CLAUDE_AGENT_APP_KEY_FILE` | `~/.config/claude-agent/app-key.pem` |
 | `CLAUDE_AGENT_APP_KEY_CMD` | none (a command that prints the key) |
-| `CLAUDE_AGENT_INSTALLATION_ID` | looked up |
+
+The other settings have defaults and are described at the top of the script.
 
 ## Tests
 

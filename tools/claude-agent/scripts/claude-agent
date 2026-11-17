@@ -10,6 +10,10 @@
 # ~/.config/claude-agent/app-key.pem, mode 600) or from the output of
 # CLAUDE_AGENT_APP_KEY_CMD (for a secret manager). Tokens last one hour, so a
 # session that runs longer has to be relaunched.
+#
+# Other settings, all with defaults below: CLAUDE_AGENT_APP_ID,
+# CLAUDE_AGENT_APP_SLUG, CLAUDE_AGENT_ORG, and CLAUDE_AGENT_INSTALLATION_ID
+# (skips the lookup of the App's installation on the organisation).
 set -euo pipefail
 
 APP_ID="${CLAUDE_AGENT_APP_ID:-5240375}"
@@ -64,6 +68,16 @@ mint_token() {
   api POST "/app/installations/$id/access_tokens" "$jwt" "$body" | jq -r .token
 }
 
+list_repos() {
+  local token=$1 page=1 names
+  while :; do
+    names=$(api GET "/installation/repositories?per_page=100&page=$page" "$token" | jq -r '.repositories[].full_name')
+    [ -n "$names" ] || break
+    printf '%s\n' "$names"
+    page=$((page + 1))
+  done
+}
+
 parse_repos() {
   while [ $# -gt 0 ] && [ "$1" != -- ]; do
     case $1 in
@@ -84,7 +98,7 @@ case $cmd in
   check)
     parse_repos "$@"
     token=$(mint_token)
-    api GET /installation/repositories "$token" | jq -r '.repositories[].full_name'
+    list_repos "$token"
     ;;
   launch)
     parse_repos "$@"
@@ -98,17 +112,22 @@ case $cmd in
 
     # Act as the App: its token, its identity, and none of the engineer's credentials.
     export GH_TOKEN=$token GH_CONFIG_DIR=$scratch/gh GIT_TERMINAL_PROMPT=0
-    unset GITHUB_TOKEN GH_ENTERPRISE_TOKEN SSH_AUTH_SOCK
+    unset GITHUB_TOKEN GH_ENTERPRISE_TOKEN SSH_AUTH_SOCK GIT_ASKPASS SSH_ASKPASS
     export GIT_AUTHOR_NAME="$APP_SLUG[bot]" GIT_COMMITTER_NAME="$APP_SLUG[bot]"
     export GIT_AUTHOR_EMAIL="$bot_id+$APP_SLUG[bot]@users.noreply.github.com"
     export GIT_COMMITTER_EMAIL=$GIT_AUTHOR_EMAIL
     # Ignore the engineer's git config (helpers, signing keys); send SSH remotes over HTTPS.
     export GIT_CONFIG_NOSYSTEM=1 GIT_CONFIG_GLOBAL=/dev/null
-    export GIT_CONFIG_COUNT=3
-    export GIT_CONFIG_KEY_0=credential.helper
-    export GIT_CONFIG_VALUE_0='!f() { echo username=x-access-token; echo "password=$GH_TOKEN"; }; f'
-    export GIT_CONFIG_KEY_1=url.https://github.com/.insteadOf GIT_CONFIG_VALUE_1=git@github.com:
-    export GIT_CONFIG_KEY_2=url.https://github.com/.insteadOf GIT_CONFIG_VALUE_2=ssh://git@github.com/
+    # An empty helper clears every helper seen so far, including repo-local ones, so
+    # the engineer's credentials cannot answer. The App helper then answers for
+    # github.com only, and no other host is offered the token.
+    export GIT_CONFIG_COUNT=5
+    export GIT_CONFIG_KEY_0=credential.helper GIT_CONFIG_VALUE_0=
+    export GIT_CONFIG_KEY_1=core.askPass GIT_CONFIG_VALUE_1=
+    export GIT_CONFIG_KEY_2=credential.https://github.com.helper
+    export GIT_CONFIG_VALUE_2='!f() { echo username=x-access-token; echo "password=$GH_TOKEN"; }; f'
+    export GIT_CONFIG_KEY_3=url.https://github.com/.insteadOf GIT_CONFIG_VALUE_3=git@github.com:
+    export GIT_CONFIG_KEY_4=url.https://github.com/.insteadOf GIT_CONFIG_VALUE_4=ssh://git@github.com/
 
     status=0
     "${REST[@]}" || status=$?

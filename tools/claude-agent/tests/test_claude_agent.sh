@@ -7,6 +7,10 @@ here=$(cd "$(dirname "$0")" && pwd)
 script=$here/../scripts/claude-agent
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
+
+# Start clean: an engineer's own settings, such as a key command for a secret
+# manager, must not reach the tests or sign anything.
+for name in $(compgen -v CLAUDE_AGENT_); do unset "$name"; done
 failures=0
 
 pass() { echo "ok   $1"; }
@@ -65,7 +69,30 @@ check "git gets the app token as its password" \
   "$(run bash -c 'printf "protocol=https\nhost=github.com\n\n" | git credential fill' | grep '^password=')" password=ghs_TEST
 check "gh has no stored login of its own" "$(run bash -c 'ls "$GH_CONFIG_DIR" 2>/dev/null | wc -l | tr -d " "')" 0
 check "launch passes the exit status through" "$(run bash -c 'exit 7'; echo $?)" 7
+check "the App helper answers only for github.com" \
+  "$(run bash -c 'printf "protocol=https\nhost=example.org\n\n" | git credential fill 2>/dev/null | grep -c "^password="')" 0
+git -C "$tmp/repo" config --local credential.helper '!f() { echo username=engineer; echo password=ENGINEER_SECRET; }; f'
+check "a repo-local credential helper cannot answer for the engineer" \
+  "$(run bash -c 'printf "protocol=https\nhost=github.com\n\n" | git credential fill' | grep '^password=')" password=ghs_TEST
+git -C "$tmp/repo" config --local --unset credential.helper
 check "the caller's environment is untouched" "$(git config --global user.name)" "Some Engineer"
+
+# check: follows pages. A stand-in curl serves a full first page, a short second page
+# and then an empty one.
+mkdir -p "$tmp/bin"
+cat > "$tmp/bin/curl" <<'STUB'
+#!/usr/bin/env bash
+for arg in "$@"; do
+  case $arg in
+    *"&page=1") jq -nc '{repositories: [range(100) | {full_name: "org/repo\(.)"}]}'; exit 0 ;;
+    *"&page=2") jq -nc '{repositories: [range(3) | {full_name: "org/extra\(.)"}]}'; exit 0 ;;
+    *"&page=3") jq -nc '{repositories: []}'; exit 0 ;;
+  esac
+done
+exit 22
+STUB
+chmod +x "$tmp/bin/curl"
+check "check lists every page of repositories" "$(PATH=$tmp/bin:$PATH timeout 10 "$script" check | head -n 1000 | wc -l | tr -d ' ')" 103
 
 if [ "$failures" -gt 0 ]; then echo "$failures failed"; exit 1; fi
 echo "all passed"
