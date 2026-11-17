@@ -18,7 +18,10 @@
 - The review summary ends with: `🤖 Drafted with Claude Code, reviewed and approved by <name> before posting.` The name comes from `gh`, never hard-coded. The credit is on the summary only.
 - No Conventional Comments prefixes (`issue:`, `nitpick:`). Weight is stated in plain words inside the sentence.
 - Findings are phrased as questions, with the trade-off and the plain-words weight, and cite a principle only when it changes the decision.
-- Order: correctness and data integrity, then design, then naming and tests. Drop anything RuboCop enforces.
+- Two tiers. Design findings (default cap 6, ranked) each give what was noticed, another way to do it, and the trade-off. Details (names, context, small mistakes) are inline, marked non-blocking, limited to about eight, with repeats grouped into one comment.
+- Order: correctness and data integrity, then design, then details. Drop anything RuboCop enforces.
+- One complete pass. All significant points are raised up front so the author is not pulled through extra rounds.
+- Infer hack versus built-to-stand from the PR title, description and draft status, state the assumption in the summary, and let Joe override. Correctness findings are raised either way.
 - Testing hot points are Better Specs with the standards' deviations (Testing §3). It does not push "one expectation per test".
 - Retired rules (spec-driven contract, "invent behavior") are never enforced. Repo-specific rules come from the target repo's `CLAUDE.md`.
 - Ruby/Rails only, ActiveRecord first, Sequel supported. The tool never edits the target repo.
@@ -141,11 +144,12 @@ Run all tests: `python3 -m unittest discover -s skills/joe-review/tests -v`
   1. **Preflight:** run `check_digest.py` and put any problem at the top of the output (focus 4). Read the target repo's `CLAUDE.md` if present, and say so if absent (focus 5).
   2. **Mode:** `gh pr view --json author,isDraft`. The author equal to `gh api user` login means self mode, otherwise teammate mode. No PR means self mode, report-only. Joe can override.
   3. **Gather:** `gh pr diff` for a PR, `git diff main...HEAD` otherwise.
-  4. **Analyse:** correctness and data integrity first, then design through `lenses.md`, then naming and tests through `digest.md`. Drop what RuboCop enforces. Draft PRs get direction, risk and design only.
-  5. **Write findings:** at most 6, ranked. Each has file and line, the question, the trade-off, and the weight in plain words, in the voice of `voice-examples.md`. A cap above 6 is a tuning decision made in Task 6.
-  6. **Teammate vs self wording:** addressed to the author, or to Joe in the terminal and to later readers if posted.
-  7. **No findings:** say so, post nothing (focus 3).
-  8. **Post:** write `draft.json`, run `post_review.py --dry-run`, show Joe, and run the real post only after Joe explicitly approves the exact text.
+  4. **Intent:** infer hack or built-to-stand from the PR title, description and draft status, and state the assumption in the summary. Joe can override.
+  5. **Analyse:** correctness and data integrity first, then design through `lenses.md`, then details (names, context, small mistakes, tests) through `digest.md`. Drop what RuboCop enforces. Draft PRs get direction, risk and design only. Raise every significant point in this one pass.
+  6. **Write findings** in the voice of `voice-examples.md`. Design findings: at most 6, ranked, each with file and line, the question, another way to do it, the trade-off, and the weight in plain words. Details: inline, each marked non-blocking, about eight at most, repeats grouped into one comment. For a hack, soften details that only matter for durable code. Caps are tuned in Task 6.
+  7. **Teammate vs self wording:** addressed to the author, or to Joe in the terminal and to later readers if posted.
+  8. **No findings:** say so, post nothing (focus 3).
+  9. **Post:** write `draft.json`, run `post_review.py --dry-run`, show Joe, and run the real post only after Joe explicitly approves the exact text.
 - [ ] **Step 3: Add a "Never" list** to `SKILL.md` copied from Global Constraints: approve or request changes, post unapproved text, use Conventional Comments prefixes, enforce retired rules, edit the target repo.
 - [ ] **Step 4: Re-run the unit tests.** Expected: PASS, including the frontmatter test.
 - [ ] **Step 5: Commit** `feat(reviewer): review flow and design lenses`.
@@ -153,14 +157,15 @@ Run all tests: `python3 -m unittest discover -s skills/joe-review/tests -v`
 ### Task 6: Evaluation
 
 **Files:**
-- Create: `skills/joe-review/evals/partial-transaction.diff`, `let-in-spec.diff`, `rubocop-only.diff`, `clean.diff`, `evals/README.md`
+- Create: `skills/joe-review/evals/partial-transaction.diff`, `let-in-spec.diff`, `rubocop-only.diff`, `clean.diff`, `detail-heavy.diff`, `evals/README.md`
 
 - [ ] **Step 1: Write the four fixture diffs** as small realistic Rails changes:
   - `partial-transaction`: a service that saves a contract and its schedules in separate writes, so a schedule failure leaves a committed contract.
   - `let-in-spec`: a new spec using `let` and an explicit `subject`.
   - `rubocop-only`: only line-length and trailing-comma violations.
   - `clean`: a small, well-formed service with a spec following the standards.
-- [ ] **Step 2: Write `evals/README.md`** with the expected result per fixture: `partial-transaction` is flagged first and as a question; `let-in-spec` cites Testing §3.4; `rubocop-only` produces no findings; `clean` produces none or one minor point. Add the standing checks: at most 6 findings, no Conventional Comments prefixes, nothing posted without approval, no assertion without a file and line.
+  - `detail-heavy`: working code with vague names (`data`, `process`), a missing explanation for a non-obvious constant, and the same poor name in three places.
+- [ ] **Step 2: Write `evals/README.md`** with the expected result per fixture: `partial-transaction` is flagged first, as a question, with an alternative and its trade-off; `let-in-spec` cites Testing §3.4; `rubocop-only` produces no findings; `clean` produces none or one minor point; `detail-heavy` produces inline non-blocking details with the repeated name grouped into one comment. Also run `partial-transaction` once with a PR description saying "temporary spike" and check the correctness finding is still raised while durable-code details soften. Add the standing checks: at most 6 findings, no Conventional Comments prefixes, nothing posted without approval, no assertion without a file and line.
 - [ ] **Step 3: Run the skill** on each fixture in a fresh Claude Code session, plus two or three past contracto PRs where Joe's real comments are the reference.
 - [ ] **Step 4: Joe judges** the output against the spec's anti-goals. Adjust the cap, `lenses.md` and `SKILL.md` wording until Joe is satisfied, re-running the affected fixtures.
 - [ ] **Step 5: Commit** `test(reviewer): eval fixtures and pass criteria`.

@@ -17,8 +17,11 @@ trade-offs rather than issuing rules.
 
 ## 2. Goals
 
-1. Review a diff and report the few findings that matter, ranked, each with its reasoning
-   and trade-offs.
+1. Review a diff in two tiers. **Design findings**: the few that matter, ranked, each
+   naming what was noticed, another way to do it, and the trade-off between the two. **Details**:
+   names, context and small mistakes, flagged inline as non-blocking teaching points.
+   The purpose is supportive and educational: make the author think about how they
+   implemented something, whether there is a better way, and what each way costs.
 2. Reason from design principles as lenses, never as rules. Say when breaking a
    principle is the right call.
 3. Check a change against a condensed digest of the engineering standards (see §6.3) and
@@ -45,7 +48,9 @@ Each of these is something Joe said would make them wince:
 | Failure | Design response |
 | --- | --- |
 | Sounds certain when wrong | Phrase as questions. State uncertainty plainly. Never assert a violation without showing the evidence in the diff |
-| Noise: dozens of comments, style points RuboCop catches | Cap and rank findings. Drop anything a configured linter enforces |
+| Noise: dozens of comments, style points RuboCop catches | Design findings are capped and ranked. Details are limited separately (about eight), with repeats grouped into one comment. Anything a configured linter enforces is dropped |
+| Churn: the author is pulled through extra review rounds | One complete, ranked pass that raises every significant point up front. Details are marked non-blocking in plain words ("worth keeping in mind, not worth holding the release") so they teach without delaying a merge |
+| Same bar for a hack and for code built to stand | Infer intent from the PR title, description and draft status, state the assumption, and let Joe override. Details that do not matter for throwaway code are softened, not hidden |
 | Preaching the books | Cite a principle only when it changes the decision, and always with the trade-off |
 | Misses the real problem while discussing naming | Correctness first: partial failure, transactions, data integrity, edge cases are examined before naming and style |
 | Enforces stale or wrong rules | Every digest rule carries its source and sync date. Superseded rules are excluded. Conflicts between sources are flagged, not resolved silently |
@@ -79,7 +84,10 @@ returned a 502, so the sample may be slightly incomplete.
 - Points to how similar problems are solved elsewhere in the org.
 - States weight in plain words ("minor", "curiosity", "wouldn't block for me").
 - Backs off when the author gives a good reason.
-- Silent on matters a linter or an unagreed style preference would cover.
+- Raises small details (names, context, small mistakes) as non-blocking teaching points,
+  because details matter: if code is worth writing it is either a hack (quality may not
+  matter) or written to stand (quality matters more), with exceptions.
+- Silent only on what a linter enforces or on a style preference the team has not agreed.
 
 No Conventional Comments prefixes (`issue:`, `nitpick:`). Standards §6 considered and did not
 adopt them, and the first word of a comment is reserved for a proposed cause tag. Weight is
@@ -120,9 +128,21 @@ diff-visible, for example Docker or CI files.)*
 
 ### 6.4 Ranking and volume
 
-Correctness and data-integrity risks first, then design, then naming and tests. Few
-findings, each with: what was seen (file and line), the question, the trade-off, and the
-weight in plain words. The exact cap is left to the builder, tuned against real diffs.
+**Design findings** come first: correctness and data-integrity risks, then design. Each has
+what was seen (file and line), the question, **another way to do it**, the trade-off between
+the two, and the weight in plain words. Capped, default 6, tuned against real diffs.
+
+**Details** come second: names, context and small mistakes, each inline on its line, each
+marked non-blocking. Limited to about eight. The same issue in several places is one comment
+("same naming issue in three places, flagging once here").
+
+### 6.6 Intent calibration
+
+The reviewer infers whether the change is a hack or built to stand, from the PR title,
+description and draft status (words such as spike, hotfix, temporary point to a hack). It
+states the assumption in the summary ("treating this as built to stand") and Joe can
+override it. For a hack, details that only matter for durable code are softened. Design
+findings that affect correctness are raised either way.
 
 ### 6.5 Posting
 
