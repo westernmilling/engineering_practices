@@ -1,3 +1,5 @@
+import contextlib
+import io
 import json
 import subprocess
 import sys
@@ -6,7 +8,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
 
-from fetch_voice import fetch_comments  # noqa: E402
+from fetch_voice import fetch_comments, main  # noqa: E402
 
 
 def api_comment(author, number, path, body):
@@ -122,6 +124,29 @@ class FetchCommentsTest(unittest.TestCase):
 
         self.assertEqual([1, 2], [c["pr"] for c in comments])
         self.assertIn("page=2", fake.calls[1][-1])
+
+    def test_matches_the_author_whatever_the_capitalisation(self):
+        fake = FakeGh(
+            page(api_comment("josephbridgwaterrowe", 3, "a.rb", "Why?")),
+            page(),
+        )
+
+        comments = fetch_comments("org/repo", "JosephBridgwaterRowe", run=fake)
+
+        self.assertEqual(1, len(comments))
+
+
+class MainTest(unittest.TestCase):
+    def test_missing_gh_is_a_plain_error_not_a_traceback(self):
+        def gh_not_installed(*_args, **_kwargs):
+            raise FileNotFoundError(2, "No such file or directory", "gh")
+
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            code = main(["fetch_voice.py", "org/repo", "someone"], run=gh_not_installed)
+
+        self.assertEqual(1, code)
+        self.assertIn("fetch_voice:", stderr.getvalue())
 
 
 if __name__ == "__main__":

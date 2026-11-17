@@ -34,13 +34,14 @@ def fetch_page(repo, page, run, retries, sleep):
 
 def fetch_comments(repo, author, run=subprocess.run, retries=3, sleep=time.sleep):
     comments = []
+    wanted = author.lower()
     page = 1
     while True:
         batch = fetch_page(repo, page, run, retries, sleep)
         if not batch:
             return comments
         for comment in batch:
-            if comment["user"]["login"] == author:
+            if comment["user"]["login"].lower() == wanted:
                 comments.append(
                     {
                         "pr": int(comment["pull_request_url"].rsplit("/", 1)[-1]),
@@ -51,13 +52,13 @@ def fetch_comments(repo, author, run=subprocess.run, retries=3, sleep=time.sleep
         page += 1
 
 
-def main(argv):
+def main(argv, run=subprocess.run):
     if len(argv) != 3:
         print(__doc__, file=sys.stderr)
         return 2
     try:
-        comments = fetch_comments(argv[1], argv[2], retries=5)
-    except RuntimeError as error:
+        comments = fetch_comments(argv[1], argv[2], run=run, retries=5)
+    except (RuntimeError, OSError) as error:
         print(f"fetch_voice: {error}", file=sys.stderr)
         return 1
     json.dump(comments, sys.stdout, indent=2)
