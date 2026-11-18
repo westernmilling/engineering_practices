@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/badge.png" alt="The Viserion Claude Agent badge" width="120">
+</p>
+
 # claude-agent
 
 Runs git and gh as the GitHub App `viserion-claude-agent`, so work done by an
