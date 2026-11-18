@@ -29,6 +29,11 @@ markdown so they can be read in-repo, diffed over time, and loaded by tooling.
 | Pipelines, workflows, checks | [§14 CI/CD](standards/14-ci-cd.md) |
 | Deploys, environments | [§15 Deployment](standards/15-deployment.md) |
 
+## Tools
+
+- **[claude-agent](tools/claude-agent/README.md)** — runs git and gh as the
+  `viserion-claude-agent` GitHub App, for the agent-identity pilot. Not a standard.
+
 ## Source of Truth
 
 Confluence is authoritative (space `SD`). Each file records the Confluence URL,
