@@ -21,9 +21,19 @@ claude-agent launch -- claude
 
 Work with Claude as you normally would. Anything it commits, pushes or opens
 shows as `viserion-claude-agent[bot]`. When it opens a pull request, review it
-in the browser and approve it **as yourself**. GitHub allows that because you
-are not the author. The agent never approves or merges: a person does the
-merge.
+in the browser.
+
+Who may approve it depends on whether the proposal has been adopted:
+
+- **Under the proposal,** the engineer who directed the agent may approve its
+  work as themselves, because GitHub sees a different author.
+- **Until it is adopted,** CI/CD §14.10 still says the approver is someone who
+  did not drive the agent, and the author never approves their own agent's
+  output. Check which applies to your repository before you approve your own
+  agent's work.
+
+The agent should never approve or merge. A person does the merge, and the
+repository ruleset is what enforces it.
 
 ## Using it on your project
 
@@ -56,10 +66,14 @@ merge.
 
 **What you do as the human**
 
-- Read the pull request and approve it in the browser. Your approval is the
-  attributable sign-off.
-- Merge it yourself. The App holds no approve or merge permission, and it must
-  never be added to a ruleset's bypass list or a reviewer team.
+- Read the pull request and approve it in the browser. The approval is the
+  attributable sign-off. Whether that approver may be the engineer who directed
+  the agent is described under [Quick start](#quick-start).
+- Merge it yourself. Human-only merging is a repository ruleset policy, not a
+  limit on the App: its contents and pull request write permissions would let
+  it approve or merge if the ruleset allowed it. Never add the App to a
+  ruleset's bypass list or a reviewer team, and tell the agent not to approve
+  or merge.
 
 ## Troubleshooting
 
@@ -68,7 +82,7 @@ merge.
 | `no private key at …` or `… must have mode 600` | The key file is missing or too open. Read the first line. The lines after it (`401`, then `is not installed on westernmilling`) are noise from the failed key read, and the last one is misleading. | Put the key at `~/.config/claude-agent/app-key.pem` and run `chmod 600` on it. |
 | `curl: (22) … 401` followed by `is not installed on westernmilling`, with no line before it about the key | The key is readable but GitHub rejects it: it belongs to a different App, or it was deleted. The "not installed" line is misleading here too. | Check with an organisation owner that the key was generated for `viserion-claude-agent` and still exists. |
 | `curl: (22) … 422` from `check`, `token` or `launch` | A `--repo` name was refused: it is misspelled, or the App is not installed on it. | Run `claude-agent check` to see the valid names. |
-| `Repository not found` from git, or `Could not resolve to a Repository` from `gh`, inside a session | The App is not installed on that repository. | Ask an organisation owner to install it. |
+| `Repository not found` from git, or `Could not resolve to a Repository` from `gh`, inside a session | Either the App is not installed on that repository, or the session's token was scoped with `--repo` and left it out. | Outside the session, run `claude-agent check` with no `--repo`. If the repository is listed, relaunch with it included in `--repo` (or without `--repo`). If it is not listed, ask an organisation owner to install the App on it. |
 | `401` or `Bad credentials` in a session that has been running about an hour | The one-hour token expired. | Exit and run `launch` again. |
 | `claude-agent: command not found` | The script is not on your `PATH`. | Redo step 3 of the engineer setup, and check `~/.local/bin` is on your `PATH`. |
 
