@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/badge.png" alt="The Gauntlet" width="120">
+</p>
+
 # The Gauntlet
 
 Joe's personal, on-demand Rails code reviewer for Claude Code. The name is a joke about the team
