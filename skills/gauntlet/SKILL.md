@@ -15,6 +15,8 @@ partner and a drafting aid: a human reads every line, and it never decides the o
 Files beside this one (read them, do not paraphrase from memory):
 
 - `lenses.md`: design lenses as trade-off prompts. Ways of reasoning, never rules.
+- `lenses-frontend.md`: the same, for React and browser JavaScript or TypeScript, with front-end
+  correctness and testing guidance.
 - `digest.md`: hot points from the engineering standards, each citing its section.
 - `voice-examples.md`: Joe's real review comments. Match this voice.
 - `scripts/check_digest.py`, `scripts/post_review.py`.
@@ -62,14 +64,32 @@ for durable code. Correctness findings are raised either way.
 
 ## 5. Analyse, in this order
 
-1. **Correctness and data integrity.** Partial failure, transactions, idempotency, edge cases. What
-   happens if the second write fails? Look here before anything else.
-2. **Design.** Use `lenses.md`. Raise a design point only when it changes what the author should do.
-3. **Details.** Names, missing context, small mistakes, and tests (use `digest.md`). Details matter:
-   they teach the author to avoid small mistakes. They do not hold up a release.
+Pick the lenses from the files in the diff, file by file:
 
-Drop anything RuboCop or another configured linter enforces. Raise every significant point in this
-one pass, so the author is not pulled through extra rounds for points the first pass could have made.
+- **Ruby** (`.rb`, `.rake`, `Gemfile`): `lenses.md`, and the Testing section of `digest.md` for specs.
+- **React and browser code** (`.tsx`, `.jsx`, and `.ts` or `.js` that runs in the browser):
+  `lenses-frontend.md`, plus SOLID, Clean Code and Gang of Four from `lenses.md`. Do not apply the
+  Rails lenses (Active Record, Unit of Work, query objects, aggregates) to it.
+- **TypeScript or JavaScript that runs on a server:** the design lenses in `lenses.md`, and the
+  **Types** section of `lenses-frontend.md`. The React sections do not apply.
+- **A mixed diff** uses each set for its own files. If you cannot tell which side a file is on from
+  the diff and the repo, say so instead of guessing.
+
+1. **Correctness and data integrity.** Partial failure, transactions, idempotency, edge cases. What
+   happens if the second write fails? Look here before anything else. In the browser the same
+   question is races, double submits, optimistic updates that do not roll back, and missing loading
+   or error states: see "Correctness in the browser" in `lenses-frontend.md`.
+2. **Design.** Use the lenses chosen above. Raise a design point only when it changes what the author
+   should do.
+3. **Details.** Names, missing context, small mistakes, and tests (Ruby specs: use `digest.md`;
+   JavaScript and TypeScript tests: use "Testing front-end code" in `lenses-frontend.md`, since the
+   digest's testing rules are RSpec mechanics). Details matter: they teach the author to avoid small
+   mistakes. They do not hold up a release.
+
+Drop anything RuboCop or another configured linter enforces (ESLint, Prettier, and the TypeScript
+compiler for JavaScript and TypeScript, including formatting and import order). Raise every
+significant point in this one pass, so the author is not pulled through extra rounds for points the
+first pass could have made.
 
 ## 6. Write the findings
 

@@ -5,6 +5,7 @@ from pathlib import Path
 SKILL_DIR = Path(__file__).resolve().parent.parent
 SKILL = (SKILL_DIR / "SKILL.md").read_text()
 LENSES = (SKILL_DIR / "lenses.md").read_text()
+FRONTEND = (SKILL_DIR / "lenses-frontend.md").read_text()
 
 
 class SkillContentTest(unittest.TestCase):
@@ -51,6 +52,36 @@ class SkillContentTest(unittest.TestCase):
 
         for section in sections:
             self.assertIn("rade-off", section, section.splitlines()[0])
+
+    def test_every_front_end_lens_section_names_a_trade_off(self):
+        sections = FRONTEND.split("\n## ")[1:]
+
+        self.assertTrue(sections)
+        for section in sections:
+            self.assertIn("rade-off", section, section.splitlines()[0])
+
+    def test_front_end_lenses_cover_correctness_types_and_testing(self):
+        for heading in ("## Correctness in the browser", "## State and effects", "## Types (TypeScript)",
+                        "## Testing front-end code"):
+            self.assertIn(heading, FRONTEND)
+
+    def test_skill_picks_the_lenses_from_the_files_in_the_diff(self):
+        analyse = SKILL.split("## 5. Analyse", 1)[1].split("## 6.", 1)[0]
+
+        self.assertIn("`lenses-frontend.md`", analyse)
+        self.assertIn("Do not apply the\n  Rails lenses", analyse)
+        self.assertIn("runs on a server", analyse)
+        self.assertIn("A mixed diff", analyse)
+
+    def test_front_end_tests_do_not_use_the_rspec_digest(self):
+        analyse = SKILL.split("## 5. Analyse", 1)[1].split("## 6.", 1)[0]
+
+        self.assertIn("Testing front-end code", analyse)
+        self.assertIn("RSpec mechanics", analyse)
+
+    def test_front_end_linters_are_named(self):
+        for linter in ("ESLint", "Prettier", "TypeScript"):
+            self.assertIn(linter, SKILL)
 
     def test_findings_that_need_no_change_are_left_out(self):
         self.assertIn("Leave out anything you decide needs no change", SKILL)
