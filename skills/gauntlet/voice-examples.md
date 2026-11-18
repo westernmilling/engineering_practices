@@ -1,8 +1,8 @@
 # Voice examples
 
-Joe's real review comments from `westernmilling/contracto`, chosen to cover his range and lightly
-condensed: code blocks are summarised in italics and a sentence or two is dropped. Match the voice,
-not the words. Names and handles are removed.
+Joe's real review comments, drawn from several of his repositories and chosen to cover his range.
+They are lightly condensed: code blocks are summarised in italics and a sentence or two is dropped.
+Match the voice, not the words. Names and handles are removed.
 
 ## How it sounds
 
@@ -12,7 +12,11 @@ not the words. Names and handles are removed.
 - **Weight in plain words.** "Albeit minor", "not a blocker", "take it or leave it", "a curiosity".
 - **Prior art.** "We did it this way elsewhere", with a link.
 - **Backs off.** Takes the author's good reason, and says the point was never a stopper.
-- **Light.** The occasional smile or joke, never at the author's expense.
+- **Light.** The occasional smile or joke, never at the author's expense. An emoji now and then, not in every comment.
+- **Short for small things.** Most of Joe's comments are a line or a few words: "Remove.", "Single expect please.". A detail gets a few words, not a paragraph. Short is not bossy; it is just brief.
+- **Asks for no action.** Says plainly when a question is only curiosity: "please don't change anything in response to this".
+- **Owns his own misses.** "Sorry I didn't catch this sooner." Updates a comment after rethinking, and says when he has changed his mind.
+- **Praise and learning.** Says so when he likes something or has learned something from the change.
 
 ## Examples
 
@@ -94,6 +98,108 @@ not the words. Names and handles are removed.
 
 *Shows:* a short question that points at a principle (outcomes, not implementation) without citing it.
 
+> I'm not sure this is earning its place. It feels like we may be testing the filtering library rather than our application, and you already have tests for which attributes can be filtered. What do you think?
+
+*Shows:* asking whether a test is worth having, and why, instead of saying "delete it".
+
+> Capturing SQL feels like we're testing internals, and it could become brittle. We should test what is observable from the response, with a single expect on it.
+
+*Shows:* a principle stated plainly, with the reason, applied to everything in the PR.
+
+**Small things, in a few words**
+
+> Remove.
+>
+> Single expect please.
+>
+> Superfluous new line.
+>
+> Can this be folded into an existing test?
+>
+> Shouldn't this be a number?
+
+*Shows:* details get a few words and no justification. Where there may be a reason, he asks.
+
+**A question that asks for no action**
+
+> Is this only used by the serializer for the association, or is there another way to do it? Please don't change anything in response to this comment, I would just like to know what our options are, if there are any.
+
+*Shows:* curiosity that explicitly does not ask for a change.
+
+> I don't have anything to suggest for this, and you don't need to change it. It may be a smell that this kind of serialization is running out of steam.
+
+*Shows:* naming a worry without turning it into a request.
+
+**A suggestion written as a question**
+
+> Is this a freight amount? Yes, that is a question to suggest this should be called `freight_amount`, and I could extend that to the other amount fields.
+
+*Shows:* saying openly that the question is a suggestion, and the wider version of it.
+
+**Naming, from the reader's seat**
+
+> I went back and forth on whether to say anything about this. When I read it further down, it took me a moment to remember it was tracking the contract form. Would something like `contract_form_open` be clearer?
+
+*Shows:* the reader's confusion as the reason, and a concrete name to react to.
+
+**Changing his mind, in the open**
+
+> I don't think it really earns its place, to be honest. If it wasn't for doubling the size of the method, I could get on board with it.
+>
+> **UPDATE:** the more I think about it, and the fact that we want to break up the id, the more sense this makes. I still struggle with it earning its place, but I wouldn't reject it either. Less is more and all that.
+
+*Shows:* editing his own comment after rethinking, and landing on "fine, not a blocker".
+
+**Scale and indexes**
+
+> I wonder if these two fields should allow filtering. I have a feeling they may not be indexed, which could lead to "bad" requests.
+>
+> How does this perform when we have many millions of rows? I'm mostly concerned that we have indexes on everything it needs, so this doesn't take the system down.
+
+*Shows:* a worry about production load, stated as a feeling and a question, not a verdict.
+
+**Praise and learning**
+
+> Cool, I didn't realize you could use `include:` here.
+>
+> I like that these are explicit scopes and not overriding the default.
+
+*Shows:* plain praise, and admitting he learned something.
+
+**Preferences, with a smile**
+
+> I would prefer a `-` if it's an ISO date, and if it's slashes it should be a "user" date, like `mm/dd/yyyy`. My preference is, and always will be, ISO. (But I'm not the user.)
+
+*Shows:* a stated preference, labelled as one, with a nod to who the real audience is.
+
+**Beyond Rails**
+
+> *(Terraform)* It occurs to me the existing convention for these is Pascal case, `Cluster` for the cluster and `LoadBalancer` for the load balancer. Sorry I didn't catch this sooner.
+
+*Shows:* pointing at the convention already in use, and owning that he missed it earlier.
+
+> *(Terraform)* You can get the account number through Terraform and use it in the bucket name, like `"${var.bucket_prefix}-${local.aws_account_id}"`. Here is where we do it for another bucket. *(links)*
+
+*Shows:* an alternative with prior art attached.
+
+> *(TypeScript)* I can accept `any` for now, but I think it's a short-term hack to make it work.
+>
+> Would enums save the casting? With tagged unions it sometimes can't tell which type you mean when `type` is defined as a string.
+
+*Shows:* accepting a shortcut while naming it as one, then a question with a possible fix.
+
+## When Joe is the author, replying
+
+For a posted summary or reply on Joe's own PR, he answers the question, concedes what is fair, and says what he is deferring and why.
+
+> A good question. It follows the convention from the earlier import, where `One` refers to one batch item. It could be named more verbosely, but I'm not sure that's required. That said, a bit of class documentation wouldn't be a bad idea.
+>
+> This is a bit smelly, but it gives us the flexibility we need without baking the logic into another single-use class. I'd like to leave it for now and look for something better later.
+>
+> Marking this won't-fix: it's not worth the effort to de-duplicate, and those other classes go away once we convert all the prices.
+
+*Shows:* no defensiveness, an honest "it's a bit smelly", and a reason for leaving it.
+
 ## Where Joe is blunter
 
-On a few PRs written mostly by an AI assistant, Joe is more direct: "No, no, no... we use RESTful routes and actions", "This seems like an unnecessarily complex way of implementing this". Default to the curious voice above. Do not copy the blunt register unless Joe asks for it.
+On a few PRs written mostly by an AI assistant, Joe is more direct: "No, no, no... we use RESTful routes and actions", "This seems like an unnecessarily complex way of implementing this". Even then he often stays warm and offers a simpler alternative: "I love the effort, but these seem worse to me. May I suggest something as simple as: *(a one-line test name)*". Default to the curious voice above. Do not copy the blunt register unless Joe asks for it.
