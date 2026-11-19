@@ -23,14 +23,12 @@ Work with Claude as you normally would. Anything it commits, pushes or opens
 shows as `viserion-claude-agent[bot]`. When it opens a pull request, review it
 in the browser.
 
-Who may approve it depends on whether the proposal has been adopted:
-
-- **Under the proposal,** the engineer who directed the agent may approve its
-  work as themselves, because GitHub sees a different author.
-- **Until it is adopted,** CI/CD §14.10 still says the approver is someone who
-  did not drive the agent, and the author never approves their own agent's
-  output. Check which applies to your repository before you approve your own
-  agent's work.
+During the pilot, the engineer who directed the agent approves its work as
+themselves. GitHub sees a different author, so the approval counts. Approving
+means taking ownership of code you may not have written: you are accountable for
+it as if you had. Read it before you approve. This is the pilot's working
+expectation, and it overrides the CI/CD §14.10 rule that the approver must be
+someone who did not drive the agent, until the proposal settles the standard.
 
 The agent should never approve or merge. A person does the merge, and the
 repository ruleset is what enforces it.
@@ -67,8 +65,8 @@ repository ruleset is what enforces it.
 **What you do as the human**
 
 - Read the pull request and approve it in the browser. The approval is the
-  attributable sign-off. Whether that approver may be the engineer who directed
-  the agent is described under [Quick start](#quick-start).
+  attributable sign-off, and you own the result. During the pilot you may approve
+  work the agent did under your direction (see [Quick start](#quick-start)).
 - Merge it yourself. Human-only merging is a repository ruleset policy, not a
   limit on the App: its contents and pull request write permissions would let
   it approve or merge if the ruleset allowed it. Never add the App to a
