@@ -24,7 +24,7 @@ BADGE_URL = (
     "https://github.com/westernmilling/engineering_practices/blob/main/"
     "skills/gauntlet/assets/badge.png?raw=true"
 )
-BADGE = f'<img src="{BADGE_URL}" width="72" alt="The Gauntlet">'
+BADGE = f'<p align="center"><img src="{BADGE_URL}" width="72" alt="The Gauntlet"></p>'
 DEFAULT_AGENT = "Claude Code"
 CREDIT = "🤖 Drafted with {agent}, reviewed and approved by {reviewer} before posting."
 
@@ -101,10 +101,10 @@ def build_review(draft, reviewer, existing_markers, diff_lines, agent=DEFAULT_AG
     if not inline and not moved:
         return None
 
-    summary = draft["summary"]
+    summary = BADGE + "\n\n" + draft["summary"]
     if moved:
         summary += "\n\nComments on lines outside the diff:\n" + "\n".join(moved)
-    summary += "\n\n" + BADGE + "\n\n" + CREDIT.format(agent=agent, reviewer=reviewer)
+    summary += "\n\n" + CREDIT.format(agent=agent, reviewer=reviewer)
     review = {"event": "COMMENT", "body": summary, "comments": inline}
     if head_sha:
         review["commit_id"] = head_sha

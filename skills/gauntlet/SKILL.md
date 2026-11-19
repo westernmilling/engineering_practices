@@ -120,8 +120,8 @@ Say so, and post nothing.
 
 The script refuses to run if the PR's head has moved since `head_sha`: re-run the review against
 the new head. Otherwise it posts one comment-only review pinned to that commit, skips comments
-already on the PR, moves comments on lines outside the diff into the summary, and ends the summary with the badge and the credit line. Do not
-add either yourself.
+already on the PR, moves comments on lines outside the diff into the summary, and puts the badge at
+the top of the summary and the credit line at the end. Do not add either yourself.
 
 ## Never
 

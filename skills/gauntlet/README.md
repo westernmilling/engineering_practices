@@ -56,7 +56,7 @@ It needs `python3` (standard library only) and an authenticated `gh`.
 | `scripts/check_digest.py` | Checks the digest for drift and for citations to sections that no longer exist |
 | `scripts/fetch_voice.py` | Fetches an author's inline review comments from a repo, to refresh the voice examples |
 | `scripts/post_review.py` | Builds and posts the comment-only review |
-| `assets/badge.png` | The badge shown at the end of a posted summary |
+| `assets/badge.png` | The badge shown at the top of a posted summary |
 | `evals/` | Fixture diffs and the criteria a good review meets |
 | `tests/` | Unit tests |
 
