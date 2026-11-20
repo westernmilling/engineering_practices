@@ -51,6 +51,7 @@ It needs `python3` (standard library only) and an authenticated `gh`.
 | --- | --- |
 | `SKILL.md` | The review flow Claude follows |
 | `lenses.md` | SOLID, POODR, Tell Don't Ask, Clean Code, Fowler's PoEAA, Gang of Four, DDD: ways of reasoning, never rules |
+| `lenses-frontend.md` | The same kind of lenses for React and browser JavaScript or TypeScript: correctness in the browser, state and effects, components, types, accessibility, performance and testing |
 | `digest.md` | Hot points from `standards/`, each citing its section |
 | `voice-examples.md` | Joe's real review comments, condensed, names removed |
 | `scripts/check_digest.py` | Checks the digest for drift and for citations to sections that no longer exist |
