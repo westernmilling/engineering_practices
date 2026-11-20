@@ -102,13 +102,13 @@ class BuildReviewTest(unittest.TestCase):
         self.assertIn("Drafted with Codex, reviewed and approved by Joe before posting.", review["body"])
         self.assertNotIn("Claude Code", review["body"])
 
-    def test_summary_embeds_the_badge_before_the_credit_line(self):
+    def test_summary_opens_with_the_centred_badge_and_ends_with_the_credit_line(self):
         review = build_review(draft_with(comment()), "Joe", set(), IN_DIFF)
 
-        badge = f'<img src="{BADGE_URL}"'
-        self.assertIn(badge, review["body"])
-        self.assertLess(review["body"].index(badge), review["body"].index("Drafted with Claude Code"))
-        self.assertNotIn(badge, review["comments"][0]["body"])
+        badge = f'<p align="center"><img src="{BADGE_URL}"'
+        self.assertTrue(review["body"].startswith(badge))
+        self.assertTrue(review["body"].endswith("before posting."))
+        self.assertNotIn(BADGE_URL, review["comments"][0]["body"])
 
     def test_inline_comment_targets_right_side_and_carries_marker(self):
         review = build_review(draft_with(comment()), "Joe", set(), IN_DIFF)
